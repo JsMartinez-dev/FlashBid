@@ -11,11 +11,13 @@ Brindar a los estudiantes una comprensión sólida y práctica de las bases de d
 Antes de tocar DynamoDB, este módulo establece las bases conceptuales necesarias.
 
 ### Contenidos
-- Limitaciones de las bases de datos relacionales
+- Bases de datos relacionales y sus limitaciones.
 - Escalabilidad vertical vs escalabilidad horizontal
-- Teorema CAP (enfoque aplicado, no matemático)
 - Consistencia eventual vs consistencia fuerte
-- Qué **NO** resuelve NoSQL
+- Comparativa entre bases de datos SQL y NoSQL.
+- Ventajas y desventajas bases de datos SQL y NoSQL.
+- Cuando usar bases de datos SQL y NoSQL.
+- Teorema CAP (enfoque aplicado)
 
 ### Ejemplos cotidianos
 - WhatsApp
