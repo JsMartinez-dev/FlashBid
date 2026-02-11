@@ -1,93 +1,233 @@
-# bd_no_sql
+# Asignatura: Bases de Datos NoSQL  
+**Enfoque principal: DynamoDB y Redis**
 
+## 🎯 Objetivo general
+Brindar a los estudiantes una comprensión sólida y práctica de las bases de datos NoSQL, enfocándose en **DynamoDB como sistema de registro (source of truth)** y **Redis como sistema de acceso rápido y datos temporales**, desarrollando criterio arquitectónico para sistemas modernos y escalables.
 
+---
 
-## Getting started
+## 🧠 Módulo 1 – Fundamentos NoSQL (conceptual, pero clave)
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Antes de tocar DynamoDB, este módulo establece las bases conceptuales necesarias.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+### Contenidos
+- Limitaciones de las bases de datos relacionales
+- Escalabilidad vertical vs escalabilidad horizontal
+- Teorema CAP (enfoque aplicado, no matemático)
+- Consistencia eventual vs consistencia fuerte
+- Qué **NO** resuelve NoSQL
 
-## Add your files
+### Ejemplos cotidianos
+- WhatsApp
+- Netflix
+- Juegos online
+- Carrito de compras
 
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+### Ejemplos prácticos
+- Login y manejo de sesiones → **Redis**
+- Perfil de usuario persistente → **DynamoDB**
 
-```
-cd existing_repo
-git remote add origin https://gitlab.com/caov_unimag/bd_no_sql.git
-git branch -M main
-git push -uf origin main
-```
+> 👉 *Idea clave:*  
+> **En NoSQL no se diseñan tablas, se diseñan patrones de acceso.**
 
-## Integrate with your tools
+---
 
-* [Set up project integrations](https://gitlab.com/caov_unimag/bd_no_sql/-/settings/integrations)
+## 🗂️ Módulo 2 – Tipos de bases de datos NoSQL (visión general)
 
-## Collaborate with your team
+Visión panorámica para entender el ecosistema, sin profundizar en implementaciones específicas.
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+| Tipo | Ejemplo | Uso principal |
+|----|----|----|
+| Key–Value distribuido | DynamoDB | Persistencia altamente escalable |
+| Key–Value in-memory | Redis | Latencia ultrabaja, datos temporales |
+| Columnar | Cassandra | Grandes volúmenes de datos |
+| Grafos | Neo4j | Relaciones complejas |
 
-## Test and Deploy
+### Enfatizar
+- No compiten directamente entre sí
+- Cada tipo resuelve **problemas distintos**
+- DynamoDB y Redis **no son intercambiables**
 
-Use the built-in continuous integration in GitLab.
+> Ambos son key–value, pero con propósitos completamente diferentes.
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+---
 
-***
+## ⚡ Módulo 3 – DynamoDB (núcleo del curso)
 
-# Editing this README
+Este módulo representa aproximadamente el **60–70% del curso**.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+### Contenidos esenciales
+- Tabla, item y atributos
+- Partition key y sort key
+- Diseño orientado a consultas
+- Single Table Design
+- Índices secundarios: GSI y LSI
+- Consistencia fuerte vs eventual
+- On-Demand vs Provisioned capacity
+- TTL
+- Streams
+- Transacciones: cuándo usarlas y cuándo evitarlas
 
-## Suggestions for a good README
+### Errores comunes
+- “Una tabla por entidad”
+- “Hagamos JOIN con Lambda”
+- “Usar filtros en lugar de claves”
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+### Ejercicios prácticos
+Modelado de:
+- Usuarios y órdenes
+- Chat
+- Likes / followers
 
-## Name
-Choose a self-explaining name for your project.
+Diseñar el modelo **antes de escribir código**.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+> 👉 *Mensaje clave:*  
+> **Si tu diseño es malo, DynamoDB te castiga.**
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+---
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+## 🧱 Módulo 4 – Modelado de datos NoSQL (el módulo más importante)
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+En este módulo los estudiantes aprenden a **pensar como arquitectos**.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+### Conceptos
+- Desnormalización controlada
+- Accesos primero, datos después
+- Trade-off entre lecturas y escrituras
+- Hot partitions y cómo evitarlas
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### Taller
+Diseñar **una sola tabla** que soporte:
+- Usuarios
+- Órdenes
+- Órdenes por usuario
+- Últimas órdenes
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+> DynamoDB se usa aquí como herramienta para enseñar **arquitectura**, no solo base de datos.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+---
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+## ⚡ Módulo 5 – Redis (no como base principal)
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+Redis se presenta como **complemento**, no como sistema de registro.
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+### Casos de uso
+- Cache
+- Session store
+- Rate limiting
+- Counters
+- Pub/Sub (introducción)
+- Locks simples
 
-## License
-For open source projects, say how it is licensed.
+### Estructuras de datos
+- String
+- Hash
+- List
+- Set
+- Sorted Set
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+### Ejemplos
+- Likes en tiempo real
+- Rankings
+- Conteo de vistas
+
+---
+
+## 🔄 Módulo 6 – DynamoDB + Redis (trabajando juntos)
+
+Este módulo consolida el aprendizaje y diferencia el curso.
+
+### Patrones
+- Cache-aside
+- Write-through
+- Coordinación de TTL
+- Estrategias de invalidación
+
+### Flujo típico
+1. Redis → verificar cache  
+2. DynamoDB → source of truth  
+3. Redis → almacenar resultado  
+
+---
+
+## 🚀 Módulo 7 – Arquitectura Serverless del mundo real
+
+### Arquitecturas vistas
+- DynamoDB + Lambda
+- DynamoDB + Redis + Lambda
+- DynamoDB + Redis + Lambda + API Gateway (opcional)
+- Infraestructura como código con Python (CDK)
+
+### Patrones
+- Single Table Design
+- CQRS básico
+- Event-driven architecture
+
+### Práctica sugerida
+Implementación de un backend serverless simple:
+- E-commerce
+- Chat
+- Juegos
+- Autenticación
+
+---
+
+## 🧪 Evaluación
+
+- 🧠 Quiz conceptual
+- 🧩 Taller de modelado NoSQL
+- 🚀 Proyecto final:
+  - Diseñar una arquitectura usando DynamoDB + Redis
+  - Justificar cada decisión técnica
+
+---
+
+## 💡 Valor del enfoque
+
+Los estudiantes:
+- No memorizan comandos
+- Aprenden a **pensar en sistemas**
+- Entienden arquitecturas reales
+- Llegan mejor preparados al mundo cloud
+
+---
+
+## 📚 Herramientas
+
+- **DynamoDB Local**  
+  Para ejecutar y probar DynamoDB de forma local sin costos.
+
+- **AWS Free Tier**  
+  Para prácticas reales en la nube con límites gratuitos.
+
+- **Diagramas (Draw.io)**  
+  Para modelar tablas NoSQL, arquitecturas y flujos de datos.
+
+  - **LocalStack**  
+  Emulador local de servicios AWS. Permite probar infraestructura definida con CDK incluyendo:
+  - Lambda  
+  - API Gateway  
+  - DynamoDB  
+  Ideal para desarrollo y pruebas de integración sin desplegar en AWS real.
+
+- **AWS CDK + cdklocal**  
+  Uso del AWS CDK apuntando a LocalStack para desplegar infraestructura de forma local y reproducible.
+
+- **AWS SAM CLI (opcional)**  
+  Permite ejecutar funciones Lambda y APIs de forma local a partir de plantillas sintetizadas desde CDK (`cdk synth`).  
+  Útil para debugging y pruebas rápidas de endpoints.
+
+- **Redis (Docker / Local)**  
+  Redis se ejecuta localmente (por ejemplo con Docker) para simular:
+  - Cache
+  - Session store
+  - Rate limiting
+  - Counters  
+  Se integra con DynamoDB como sistema de persistencia principal.
+
+- **Docker / Docker Compose**  
+  Orquestación del entorno local completo:
+  - LocalStack  
+  - Redis  
+  - Servicios auxiliares  
+  Facilita levantar y apagar el stack completo de desarrollo.
