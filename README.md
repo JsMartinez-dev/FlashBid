@@ -61,7 +61,7 @@ Este módulo representa aproximadamente el **60–70% del curso**.
 ### Contenidos esenciales
 - Tabla, item y atributos
 - Partition key y sort key
-- Diseño orientado a consultas
+- Diseño orientado a consultas (Access Patterns)
 - Single Table Design
 - Índices secundarios: GSI y LSI
 - Consistencia fuerte vs eventual
