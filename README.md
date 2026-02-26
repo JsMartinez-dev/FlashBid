@@ -60,9 +60,11 @@ Este módulo representa aproximadamente el **60–70% del curso**.
 
 ### Contenidos esenciales
 - Tabla, item y atributos
+- Tipos de datos.
 - Partition key y sort key
-- Diseño orientado a consultas (Access Patterns)
-- Single Table Design
+- Principales comandos:
+  - Gestión de Tablas
+  - Operaciones con Ítems (CRUD)
 - Índices secundarios: GSI y LSI
 - Consistencia fuerte vs eventual
 - On-Demand vs Provisioned capacity
@@ -93,8 +95,9 @@ Diseñar el modelo **antes de escribir código**.
 En este módulo los estudiantes aprenden a **pensar como arquitectos**.
 
 ### Conceptos
+- Diseño orientado a consultas (Access Patterns)
+- Single Table Design
 - Desnormalización controlada
-- Accesos primero, datos después
 - Trade-off entre lecturas y escrituras
 - Hot partitions y cómo evitarlas
 
