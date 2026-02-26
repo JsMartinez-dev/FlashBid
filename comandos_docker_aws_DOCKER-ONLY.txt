@@ -1,0 +1,50 @@
+1. Infrastructure Setup (Network & Volume)
+Primero, creamos el "espacio de trabajo" persistente y la red de comunicación.
+
+Bash
+
+docker network create unimag_network
+docker volume create unimag_volume
+
+2. Launching DynamoDB Local (Database Tier)
+Ejecutamos el contenedor de la base de datos vinculando el volumen para asegurar la persistencia de los datos.
+
+Bash
+
+docker run -d -p 8000:8000 \
+  --name unimag_db_container \
+  --network unimag_network \
+  -v unimag_volume:/home/dynamodblocal/data \
+  amazon/dynamodb-local -jar DynamoDBLocal.jar -sharedDb -dbPath ./data
+
+
+3. Launching AWS CLI (Tooling Tier)
+Lanzamos el contenedor de herramientas para interactuar con la base de datos. Usamos --rm para que el contenedor sea efímero (se elimine al salir), ya que lo que importa es la data en el volumen.
+
+Bash
+
+docker run -it --rm \
+  --name unimag_aws_cli_container \
+  --network unimag_network \
+  amazon/aws-cli
+  
+  
+  
+4. Internal Commands (Inside the unimag_aws_cli_container)
+Una vez dentro del prompt del contenedor, realizamos la configuración y las pruebas iniciales:
+
+A. Profile Configuration:
+
+Bash
+
+aws configure --profile unimag_profile
+# Access Key ID: fake_key
+# Secret Access Key: fake_secret
+# Default region: us-east-1
+# Default output: json
+
+
+4.1. Probar la conexión con unimag_db_container (DynamoDB Local)
+
+aws dynamodb list-tables --profile unimag_profile --endpoint-url http://unimag_db_container:8000
+
