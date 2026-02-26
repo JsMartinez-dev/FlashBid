@@ -63,14 +63,16 @@ Este módulo representa aproximadamente el **60–70% del curso**.
 - Tipos de datos.
 - Partition key y sort key
 - Principales comandos:
-  - Gestión de Tablas
+  - Gestión de Tablas (Crear, Consultar y Describir tabla)
   - Operaciones con Ítems (CRUD)
+    - Crear/Reemplazar y actualizar items.
+    - Consultas items (Get Item, Query, Scan)
 - Índices secundarios: GSI y LSI
 - Consistencia fuerte vs eventual
 - On-Demand vs Provisioned capacity
 - TTL
-- Streams
 - Transacciones: cuándo usarlas y cuándo evitarlas
+- Streams (Opcional)
 
 ### Errores comunes
 - “Una tabla por entidad”
@@ -79,6 +81,7 @@ Este módulo representa aproximadamente el **60–70% del curso**.
 
 ### Ejercicios prácticos
 Modelado de:
+- Estudiantes y notas
 - Usuarios y órdenes
 - Chat
 - Likes / followers
