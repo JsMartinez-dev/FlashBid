@@ -1,50 +1,66 @@
-1. Infrastructure Setup (Network & Volume)
-Primero, creamos el "espacio de trabajo" persistente y la red de comunicación.
+1. Instalar docker compose. En sistemas operativos Linux como Ubuntu lo podemos hacer con el comando:
 
-Bash
+sudo apt install docker-compose-plugin -y
 
-docker network create unimag_network
-docker volume create unimag_volume
+2. Creamos el archivo "docker-compose.yml" y agregar lo siguiente:
 
-2. Launching DynamoDB Local (Database Tier)
-Ejecutamos el contenedor de la base de datos vinculando el volumen para asegurar la persistencia de los datos.
+version: '3.8'
 
-Bash
+services:
+  dynamodb_local:
+    image: amazon/dynamodb-local:latest
+    container_name: dynamodblocal
+    user: root
+    restart: always
+    ports:
+      - "3000:8000"
+    volumes:
+      - dynamodb_local_volume:/home/dynamodblocal/data
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    networks:
+      - aws_network
 
-docker run -d -p 8000:8000 \
-  --name unimag_db_container \
-  --network unimag_network \
-  -v unimag_volume:/home/dynamodblocal/data \
-  amazon/dynamodb-local -jar DynamoDBLocal.jar -sharedDb -dbPath ./data
+  aws_cli:
+    image: amazon/aws-cli:latest
+    container_name: awscli
+    stdin_open: true
+    tty: true
+    entrypoint: /bin/bash
+    networks:
+      - aws_network
+    environment:
+      - AWS_ACCESS_KEY_ID=local
+      - AWS_SECRET_ACCESS_KEY=local
+      - AWS_DEFAULT_REGION=us-east-1
 
+networks:
+  aws_network:
+    driver: bridge
 
-3. Launching AWS CLI (Tooling Tier)
-Lanzamos el contenedor de herramientas para interactuar con la base de datos. Usamos --rm para que el contenedor sea efímero (se elimine al salir), ya que lo que importa es la data en el volumen.
-
-Bash
-
-docker run -it --rm \
-  --name unimag_aws_cli_container \
-  --network unimag_network \
-  amazon/aws-cli
-  
-  
-  
-4. Internal Commands (Inside the unimag_aws_cli_container)
-Una vez dentro del prompt del contenedor, realizamos la configuración y las pruebas iniciales:
-
-A. Profile Configuration:
-
-Bash
-
-aws configure --profile unimag_profile
-# Access Key ID: fake_key
-# Secret Access Key: fake_secret
-# Default region: us-east-1
-# Default output: json
+volumes:
+  dynamodb_local_volume:
 
 
-4.1. Probar la conexión con unimag_db_container (DynamoDB Local)
+3. Nos ubicamos en el mismo directorio donde agregamos el archivo creado en el punto anterior.
 
-aws dynamodb list-tables --profile unimag_profile --endpoint-url http://unimag_db_container:8000
+4. Creamos y arrancamos los contenedores definidos en el archivo usando el comando:
+
+docker compose up -d
+
+5. Entramos de forma interactiva al contenedor "awscli" con el comando:
+
+docker exec -it awscli /bin/bash
+
+6. Probamos que podamos consumir los serivicios del contenedor "dynamodblocal" desde el contenedor "awscli":
+
+aws dynamodb list-tables --endpoint-url http://dynamodblocal:8000
+
+Debe retornar algo como:
+
+{
+    "TableNames": []
+}
+
+
+
 
