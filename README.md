@@ -115,9 +115,25 @@ Diseñar **una sola tabla** que soporte:
 
 ---
 
-## ⚡ Módulo 5 – Redis (no como base principal)
+## ⚡ Módulo 5 – Redis (como cache)
 
 Redis se presenta como **complemento**, no como sistema de registro.
+
+### Redis (Remote Dictionary Server).
+- Redis como servicio de cache.
+- Estructuras de datos en Redis.
+  - String
+  - Hash
+  - List
+  - Set
+  - Sorted Set
+  - Usar redis desde python.
+
+### Patrones de diseño para Cache
+- Cache-Aside (Lazy Loading)
+- Write-Through
+- Write-Behind (Write-Back)
+- Read-Through
 
 ### Casos de uso
 - Cache
@@ -126,13 +142,6 @@ Redis se presenta como **complemento**, no como sistema de registro.
 - Counters
 - Pub/Sub (introducción)
 - Locks simples
-
-### Estructuras de datos
-- String
-- Hash
-- List
-- Set
-- Sorted Set
 
 ### Ejemplos
 - Likes en tiempo real
