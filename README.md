@@ -121,7 +121,7 @@ Redis se presenta como **complemento**, no como sistema de registro.
 
 ### Redis (Remote Dictionary Server).
 - Redis como servicio de cache.
-- Estructuras de datos en Redis.
+- Estructuras de datos en Redis y comandos básicos.
   - String
   - Hash
   - List
@@ -153,12 +153,6 @@ Redis se presenta como **complemento**, no como sistema de registro.
 ## 🔄 Módulo 6 – DynamoDB + Redis (trabajando juntos)
 
 Este módulo consolida el aprendizaje y diferencia el curso.
-
-### Patrones
-- Cache-aside
-- Write-through
-- Coordinación de TTL
-- Estrategias de invalidación
 
 ### Flujo típico
 1. Redis → verificar cache  
