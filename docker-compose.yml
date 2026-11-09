@@ -1,0 +1,85 @@
+version: "3.9"
+
+services:
+
+  # ─────────────────────────────────────────────────────────────────────
+  # CONTENEDOR 1: Emulador AWS (LocalStack o MiniStack)
+  # Cambia solo la línea "image:" para elegir entre los dos.
+  # Ambos exponen el mismo endpoint en el puerto 4566.
+  # ─────────────────────────────────────────────────────────────────────
+  emulador:
+    # Opción A — LocalStack (más completo, recomendado):
+    image: localstack/localstack
+    # Opción B — MiniStack (más ligero):
+    # image: ministack/ministack
+
+    container_name: emulador
+    ports:
+      - "4566:4566"
+    environment:
+      SERVICES: "apigateway,lambda,dynamodb"
+      DEBUG: "1"
+      LAMBDA_EXECUTOR: docker
+      DOCKER_HOST: unix:///var/run/docker.sock
+      # Necesario para que las Lambdas resuelvan redis dentro de la red
+      LAMBDA_DOCKER_NETWORK: proyecto-final_default
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./emulador-data:/tmp/localstack
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  # ─────────────────────────────────────────────────────────────────────
+  # CONTENEDOR 2: Redis (caché in-memory)
+  # ─────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ─────────────────────────────────────────────────────────────────────
+  # CONTENEDOR 3: Entorno de desarrollo CDK
+  # Aquí se trabaja: se escribe la infra y el código de las Lambdas.
+  # ─────────────────────────────────────────────────────────────────────
+  cdk-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cdk-dev
+    volumes:
+      - ./app:/app
+    working_dir: /app
+    depends_on:
+      emulador:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Redirige todas las llamadas boto3 al emulador local
+      AWS_ENDPOINT_URL: http://emulador:4566
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      # Conexión a Redis
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    # Se mantiene vivo para que puedas entrar con `docker compose exec cdk-dev bash`
+    stdin_open: true
+    tty: true
+    command: bash
+
+volumes:
+  redis_data:

@@ -1,9 +1,12 @@
 1. Instalar docker compose. En sistemas operativos Linux como Ubuntu lo podemos hacer con el comando:
 
+```
 sudo apt install docker-compose-plugin -y
+```
 
 2. Creamos el archivo "docker-compose.yml" y agregar lo siguiente:
 
+```yaml
 version: '3.8'
 
 services:
@@ -39,28 +42,32 @@ networks:
 
 volumes:
   dynamodb_local_volume:
-
+```
 
 3. Nos ubicamos en el mismo directorio donde agregamos el archivo creado en el punto anterior.
 
 4. Creamos y arrancamos los contenedores definidos en el archivo usando el comando:
 
+```
 docker compose up -d
+```
 
 5. Entramos de forma interactiva al contenedor "awscli" con el comando:
 
+```
 docker exec -it awscli /bin/bash
+```
 
-6. Probamos que podamos consumir los serivicios del contenedor "dynamodblocal" desde el contenedor "awscli":
+6. Probamos que podamos consumir los servicios del contenedor "dynamodblocal" desde el contenedor "awscli":
 
+```
 aws dynamodb list-tables --endpoint-url http://dynamodblocal:8000
+```
 
 Debe retornar algo como:
 
+```json
 {
     "TableNames": []
 }
-
-
-
-
+```
