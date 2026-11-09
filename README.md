@@ -1,7 +1,6 @@
-```markdown
 # Currículo — Bases de Datos NoSQL
 
-## Asignatura y objetivo general
+## 🎯 Asignatura y objetivo general
 
 **Asignatura:** Bases de Datos NoSQL — Énfasis en DynamoDB y Redis
 
