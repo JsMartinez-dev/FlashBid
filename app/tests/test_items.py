@@ -14,7 +14,7 @@ from moto import mock_aws
 import fakeredis
 
 # Aseguramos que el módulo handler sea importable
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../app/lambdas/items"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../lambdas/items"))
 
 
 # ── Fixtures locales ──────────────────────────────────────────────────

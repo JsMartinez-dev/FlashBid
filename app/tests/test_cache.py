@@ -13,7 +13,7 @@ import pytest
 import fakeredis
 import redis
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../app/lambdas/items"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../lambdas/items"))
 
 
 @pytest.fixture(autouse=True)

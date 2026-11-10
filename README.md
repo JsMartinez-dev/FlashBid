@@ -219,17 +219,16 @@ proyecto-final/
 │   ├── infra/
 │   │   ├── app.py          # Punto de entrada CDK
 │   │   └── stack.py        # Stack: tabla + lambdas + API GW
-│   └── lambdas/
-│       ├── items/
-│       │   ├── handler.py  # CRUD con patrón Cache-Aside
-│       │   └── cache.py    # Abstracción de Redis
-│       └── health/
-│           └── handler.py  # Health check del servicio
-│
-└── tests/
-    ├── conftest.py         # Fixtures compartidos
-    ├── test_items.py       # Tests unitarios de la lambda
-    └── test_cache.py       # Tests unitarios del caché
+│   ├── lambdas/
+│   │   ├── items/
+│   │   │   ├── handler.py  # CRUD con patrón Cache-Aside
+│   │   │   └── cache.py    # Abstracción de Redis
+│   │   └── health/
+│   │       └── handler.py  # Health check del servicio
+│   └── tests/
+│       ├── conftest.py     # Fixtures compartidos
+│       ├── test_items.py   # Tests unitarios de la lambda
+│       └── test_cache.py   # Tests unitarios del caché
 ```
 
 ### Flujo de trabajo
@@ -241,7 +240,7 @@ proyecto-final/
 5. `cdklocal deploy` — desplegar en el emulador
 6. Probar el API con `curl` o Postman → `localhost:4566`
 7. Verificar el caché desde el host con `docker compose exec redis redis-cli KEYS '*'`
-8. Ejecutar los tests dentro de `cdk-dev` con `python -m pytest /tests -v` *(usan moto y fakeredis, no necesitan el emulador)*
+8. Ejecutar los tests dentro de `cdk-dev` con `python -m pytest tests/ -v` *(usan moto y fakeredis, no necesitan el emulador)*
 
 ### Elegir emulador
 

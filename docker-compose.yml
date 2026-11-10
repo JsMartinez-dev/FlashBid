@@ -63,7 +63,6 @@ services:
     container_name: cdk-dev
     volumes:
       - ./app:/app
-      - ./tests:/tests
     working_dir: /app
     depends_on:
       emulador:
