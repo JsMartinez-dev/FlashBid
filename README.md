@@ -241,15 +241,76 @@ proyecto-final/
 3. `cdklocal bootstrap` — preparar el emulador *(la primera vez y después de cada reinicio del contenedor emulador, porque LocalStack Community no guarda estado)*
 4. Escribir la infraestructura (`stack.py`) y los handlers Python
 5. `cdklocal deploy` — desplegar en el emulador
-6. Probar el API con `curl` o Postman → `http://localhost:4566/restapis/<api-id>/prod/_user_request_/<ruta>` *(el `<api-id>` aparece en el output `ApiUrl` del deploy; en los `POST` enviar `Content-Type: application/json`)*
-   ```bash
-   curl http://localhost:4566/restapis/<api-id>/prod/_user_request_/health
-   curl -X POST -H "Content-Type: application/json" \
-        -d '{"id":"p1","nombre":"Mochila","precio":59.99}' \
-        http://localhost:4566/restapis/<api-id>/prod/_user_request_/items
-   ```
+6. Probar el API con `curl` o Postman *(ver [Probar el API](#probar-el-api))*
 7. Verificar el caché desde el host con `docker compose exec redis redis-cli KEYS '*'`
 8. Ejecutar los tests dentro de `cdk-dev` con `python -m pytest tests/ -v` *(usan moto y fakeredis, no necesitan el emulador)*
+
+### Probar el API
+
+Al terminar, `cdklocal deploy` imprime la URL base del API en el output `ApiUrl`, por ejemplo:
+
+```
+ProyectoFinalStack.ApiUrl = https://atzq55zxu0.execute-api.localhost.localstack.cloud:4566/prod/
+```
+
+El **`api-id`** es el primer segmento del dominio, antes de `.execute-api`. En este ejemplo: **`atzq55zxu0`**.
+
+> ⚠️ El `api-id` cambia cada vez que se reinicia el emulador y se vuelve a desplegar. Revisa el `ApiUrl` después de cada `cdklocal deploy`.
+
+Hay dos formas equivalentes de llamar al API. En ambas se agrega la ruta (`health`, `items`, `items/{id}`) al final de la URL base.
+
+**Opción A — Usar directamente la URL del `ApiUrl`**
+
+Se copia tal cual y se le agrega la ruta. Se puede usar con `http` o `https`:
+
+```
+http://atzq55zxu0.execute-api.localhost.localstack.cloud:4566/prod/health
+```
+
+Funciona porque `*.localhost.localstack.cloud` es un dominio público de LocalStack que siempre resuelve a `127.0.0.1`, y el puerto 4566 del emulador está publicado en la máquina. Si se usa `https` y Postman muestra un error de certificado, desactivar *Settings → SSL certificate verification*, o usar `http`.
+
+**Opción B — Usar `localhost` con el `api-id`**
+
+```
+http://localhost:4566/restapis/<api-id>/prod/_user_request_/<ruta>
+```
+
+Siguiendo el ejemplo anterior, si el `ApiUrl` es `https://atzq55zxu0.execute-api.localhost.localstack.cloud:4566/prod/`, entonces el `api-id` es `atzq55zxu0` y el endpoint final para el health check es:
+
+```
+http://localhost:4566/restapis/atzq55zxu0/prod/_user_request_/health
+```
+
+Esta opción no depende de DNS: úsala si la red o el router bloquean dominios que resuelven a `127.0.0.1` y la opción A no responde.
+
+**Endpoints disponibles** (con la opción B; con la opción A se reemplaza la base por la URL del `ApiUrl`):
+
+| Operación | Método | URL |
+|---|---|---|
+| Health check | `GET` | `http://localhost:4566/restapis/<api-id>/prod/_user_request_/health` |
+| Crear ítem | `POST` | `http://localhost:4566/restapis/<api-id>/prod/_user_request_/items` |
+| Obtener ítem | `GET` | `http://localhost:4566/restapis/<api-id>/prod/_user_request_/items/<id>` |
+| Eliminar ítem | `DELETE` | `http://localhost:4566/restapis/<api-id>/prod/_user_request_/items/<id>` |
+
+En los `POST` se debe enviar `Content-Type: application/json`; si no, el handler responde `400`. En Postman basta con elegir **Body → raw → JSON**.
+
+```bash
+# Health check
+curl http://localhost:4566/restapis/<api-id>/prod/_user_request_/health
+
+# Crear un ítem
+curl -X POST -H "Content-Type: application/json" \
+     -d '{"id":"p1","nombre":"Mochila","precio":59.99}' \
+     http://localhost:4566/restapis/<api-id>/prod/_user_request_/items
+
+# Obtener el ítem (la respuesta indica "_fuente": "cache" o "dynamodb")
+curl http://localhost:4566/restapis/<api-id>/prod/_user_request_/items/p1
+
+# Eliminar el ítem
+curl -X DELETE http://localhost:4566/restapis/<api-id>/prod/_user_request_/items/p1
+```
+
+> 💡 En Postman, crear una variable de entorno `baseUrl` con la URL base (de la opción A o la B) y usar `{{baseUrl}}/health`, `{{baseUrl}}/items`, etc. Así, cuando cambie el `api-id`, solo hay que actualizar la variable.
 
 ### Elegir emulador
 
