@@ -21,6 +21,8 @@ WORKDIR /app
 # Copiar e instalar dependencias Python antes de copiar el resto
 # (aprovecha la caché de capas de Docker)
 COPY app/requirements.txt .
+# requirements.txt incluye las dependencias de la Lambda Layer con -r
+COPY app/layers/dependencias/requirements.txt layers/dependencias/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Variables de entorno: credenciales dummy para el emulador

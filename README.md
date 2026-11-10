@@ -215,7 +215,10 @@ proyecto-final/
 │
 ├── app/
 │   ├── cdk.json            # Configuración CDK
-│   ├── requirements.txt    # Dependencias Python
+│   ├── requirements.txt    # Dependencias Python (desarrollo + tests)
+│   ├── layers/
+│   │   └── dependencias/
+│   │       └── requirements.txt  # Dependencias de las Lambdas (Lambda Layer)
 │   ├── infra/
 │   │   ├── app.py          # Punto de entrada CDK
 │   │   └── stack.py        # Stack: tabla + lambdas + API GW
@@ -238,7 +241,13 @@ proyecto-final/
 3. `cdklocal bootstrap` — preparar el emulador *(la primera vez y después de cada reinicio del contenedor emulador, porque LocalStack Community no guarda estado)*
 4. Escribir la infraestructura (`stack.py`) y los handlers Python
 5. `cdklocal deploy` — desplegar en el emulador
-6. Probar el API con `curl` o Postman → `localhost:4566`
+6. Probar el API con `curl` o Postman → `http://localhost:4566/restapis/<api-id>/prod/_user_request_/<ruta>` *(el `<api-id>` aparece en el output `ApiUrl` del deploy; en los `POST` enviar `Content-Type: application/json`)*
+   ```bash
+   curl http://localhost:4566/restapis/<api-id>/prod/_user_request_/health
+   curl -X POST -H "Content-Type: application/json" \
+        -d '{"id":"p1","nombre":"Mochila","precio":59.99}' \
+        http://localhost:4566/restapis/<api-id>/prod/_user_request_/items
+   ```
 7. Verificar el caché desde el host con `docker compose exec redis redis-cli KEYS '*'`
 8. Ejecutar los tests dentro de `cdk-dev` con `python -m pytest tests/ -v` *(usan moto y fakeredis, no necesitan el emulador)*
 

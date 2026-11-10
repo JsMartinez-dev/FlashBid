@@ -28,6 +28,14 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./emulador-data:/var/lib/localstack
+    networks:
+      default:
+        # El CDK sube los assets a S3 con estilo virtual-host (<bucket>.<host>).
+        # Estos alias hacen que esos nombres apunten al emulador dentro de la red.
+        # El bucket de bootstrap siempre es cdk-hnb659fds-assets-<cuenta>-<región>.
+        aliases:
+          - s3.localhost.localstack.cloud
+          - cdk-hnb659fds-assets-000000000000-us-east-1.s3.localhost.localstack.cloud
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
       interval: 10s
@@ -72,6 +80,10 @@ services:
     environment:
       # Redirige todas las llamadas boto3 al emulador local
       AWS_ENDPOINT_URL: http://emulador:4566
+      # cdklocal exige un endpoint de S3 explícito si AWS_ENDPOINT_URL está definido.
+      # Usa el dominio de LocalStack para que los buckets se resuelvan como
+      # subdominios (ver los aliases de red del servicio emulador).
+      AWS_ENDPOINT_URL_S3: http://s3.localhost.localstack.cloud:4566
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       AWS_DEFAULT_REGION: us-east-1
