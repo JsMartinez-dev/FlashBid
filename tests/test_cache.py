@@ -52,10 +52,8 @@ def test_set_respeta_ttl(redis_fake):
 
 def test_set_usa_ttl_de_entorno(monkeypatch, redis_fake):
     import cache
+    # cache_set lee REDIS_TTL en cada llamada, no hace falta recargar el módulo
     monkeypatch.setenv("REDIS_TTL", "120")
-    # Recargar para que lea el nuevo valor de entorno
-    import importlib
-    importlib.reload(cache)
 
     cache.cache_set("item#env", {"v": 2})
     ttl = redis_fake.ttl("item#env")

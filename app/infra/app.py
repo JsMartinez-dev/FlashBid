@@ -6,7 +6,7 @@ Ejecutar con: cdklocal deploy  (dentro del contenedor cdk-dev)
 import aws_cdk as cdk
 from stack import ProyectoFinalStack
 
-app = cdk.App()
+app: cdk.App = cdk.App()
 
 ProyectoFinalStack(
     app,

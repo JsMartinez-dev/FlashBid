@@ -10,10 +10,14 @@ import sys
 
 import boto3
 import pytest
-from moto import mock_dynamodb
+from moto import mock_aws
 
 # Agrega lambdas/items al path para poder importar handler y cache
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../app/lambdas/items"))
+
+# Dentro de cdk-dev, AWS_ENDPOINT_URL apunta al emulador; si se deja,
+# boto3 ignora moto y los tests escriben en LocalStack real.
+os.environ.pop("AWS_ENDPOINT_URL", None)
 
 # Variables de entorno necesarias antes de importar los módulos
 os.environ.setdefault("AWS_ACCESS_KEY_ID",     "test")
@@ -31,7 +35,7 @@ def tabla_dynamodb():
     Crea una tabla DynamoDB en memoria usando moto.
     Se destruye automáticamente al terminar cada test.
     """
-    with mock_dynamodb():
+    with mock_aws():
         cliente = boto3.resource("dynamodb", region_name="us-east-1")
         tabla = cliente.create_table(
             TableName="test-tabla",

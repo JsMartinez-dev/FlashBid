@@ -8,6 +8,8 @@ Define la infraestructura serverless del proyecto final:
   - API Gateway     (LambdaRestApi) que enruta las peticiones
 """
 import os
+from typing import Any
+
 import aws_cdk as cdk
 from aws_cdk import (
     Stack,
@@ -22,13 +24,13 @@ from constructs import Construct
 
 class ProyectoFinalStack(Stack):
 
-    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, **kwargs: Any) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         # ── 1. TABLA DYNAMODB ─────────────────────────────────────────
         # Single Table Design: PK y SK genéricos para soportar
         # múltiples tipos de entidades en una sola tabla.
-        tabla = ddb.Table(
+        tabla: ddb.Table = ddb.Table(
             self,
             "AppTable",
             partition_key=ddb.Attribute(
@@ -46,7 +48,7 @@ class ProyectoFinalStack(Stack):
         )
 
         # Variables de entorno comunes para todas las Lambdas
-        env_comun = {
+        env_comun: dict[str, str] = {
             "TABLE_NAME": tabla.table_name,
             "REDIS_HOST": os.environ.get("REDIS_HOST", "redis"),
             "REDIS_PORT": os.environ.get("REDIS_PORT", "6379"),
@@ -56,7 +58,7 @@ class ProyectoFinalStack(Stack):
         # ── 2. LAMBDA /items ──────────────────────────────────────────
         # Maneja GET /items/{id} y POST /items
         # Implementa Cache-Aside: consulta Redis antes de ir a DynamoDB
-        lambda_items = _lambda.Function(
+        lambda_items: _lambda.Function = _lambda.Function(
             self,
             "ItemsHandler",
             runtime=_lambda.Runtime.PYTHON_3_11,
@@ -69,7 +71,7 @@ class ProyectoFinalStack(Stack):
 
         # ── 3. LAMBDA /health ─────────────────────────────────────────
         # Health check: verifica conectividad con DynamoDB y Redis
-        lambda_health = _lambda.Function(
+        lambda_health: _lambda.Function = _lambda.Function(
             self,
             "HealthHandler",
             runtime=_lambda.Runtime.PYTHON_3_11,
@@ -84,7 +86,7 @@ class ProyectoFinalStack(Stack):
         # LambdaRestApi crea automáticamente una integración proxy
         # entre API Gateway y la Lambda raíz.
         # Luego agregamos recursos adicionales para /items y /health.
-        api = apigw.RestApi(
+        api: apigw.RestApi = apigw.RestApi(
             self,
             "Api",
             rest_api_name="ProyectoFinal-API",
@@ -93,13 +95,13 @@ class ProyectoFinalStack(Stack):
         )
 
         # /items  → GET (listar/obtener) y POST (crear)
-        recurso_items = api.root.add_resource("items")
+        recurso_items: apigw.Resource = api.root.add_resource("items")
         recurso_items.add_method(
             "POST",
             apigw.LambdaIntegration(lambda_items),
         )
         # /items/{id}  → GET (obtener uno)
-        recurso_item_id = recurso_items.add_resource("{id}")
+        recurso_item_id: apigw.Resource = recurso_items.add_resource("{id}")
         recurso_item_id.add_method(
             "GET",
             apigw.LambdaIntegration(lambda_items),
@@ -110,7 +112,7 @@ class ProyectoFinalStack(Stack):
         )
 
         # /health  → GET
-        recurso_health = api.root.add_resource("health")
+        recurso_health: apigw.Resource = api.root.add_resource("health")
         recurso_health.add_method(
             "GET",
             apigw.LambdaIntegration(lambda_health),

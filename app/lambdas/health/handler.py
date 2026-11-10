@@ -4,25 +4,36 @@ Lambda /health
 Health check del servicio.
 Verifica conectividad con DynamoDB y Redis
 y retorna el estado de cada componente.
+
+Rutas soportadas:
+  GET    /health         → Estado de DynamoDB y Redis
+                           (200 si todo está ok, 503 si alguno falla)
 """
 import json
 import logging
 import os
+from typing import Any, TypeAlias
 
 import boto3
 import redis
+from boto3.resources.base import ServiceResource
 from botocore.exceptions import ClientError
 
-logger = logging.getLogger()
+# Respuesta en formato proxy de API Gateway
+RespuestaApi: TypeAlias = dict[str, Any]
+# Estado de un componente: {"estado": "ok" | "error", ...}
+EstadoComponente: TypeAlias = dict[str, str]
+
+logger: logging.Logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-dynamodb = boto3.resource("dynamodb")
-TABLE_NAME = os.environ["TABLE_NAME"]
+dynamodb: ServiceResource = boto3.resource("dynamodb")
+TABLE_NAME: str = os.environ["TABLE_NAME"]
 
 
-def _check_dynamodb() -> dict:
+def _check_dynamodb() -> EstadoComponente:
     try:
-        tabla = dynamodb.Table(TABLE_NAME)
+        tabla: Any = dynamodb.Table(TABLE_NAME)
         tabla.load()   # describe la tabla; falla si no existe
         return {"estado": "ok", "tabla": TABLE_NAME}
     except ClientError as e:
@@ -31,27 +42,28 @@ def _check_dynamodb() -> dict:
         return {"estado": "error", "detalle": str(e)}
 
 
-def _check_redis() -> dict:
+def _check_redis() -> EstadoComponente:
+    host: str = os.environ.get("REDIS_HOST", "redis")
     try:
-        cliente = redis.Redis(
-            host=os.environ.get("REDIS_HOST", "redis"),
+        cliente: redis.Redis = redis.Redis(
+            host=host,
             port=int(os.environ.get("REDIS_PORT", 6379)),
             decode_responses=True,
             socket_connect_timeout=2,
         )
         cliente.ping()
-        return {"estado": "ok", "host": os.environ.get("REDIS_HOST", "redis")}
+        return {"estado": "ok", "host": host}
     except redis.RedisError as e:
         return {"estado": "error", "detalle": str(e)}
 
 
-def main(event: dict, context) -> dict:
+def main(event: dict[str, Any], context: Any) -> RespuestaApi:
     logger.info("Health check solicitado")
 
-    db_status    = _check_dynamodb()
-    redis_status = _check_redis()
+    db_status: EstadoComponente    = _check_dynamodb()
+    redis_status: EstadoComponente = _check_redis()
 
-    todo_ok = (
+    todo_ok: bool = (
         db_status["estado"] == "ok"
         and redis_status["estado"] == "ok"
     )

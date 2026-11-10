@@ -10,7 +10,7 @@ import sys
 import os
 
 import pytest
-from moto import mock_dynamodb
+from moto import mock_aws
 import fakeredis
 
 # Aseguramos que el módulo handler sea importable
@@ -31,7 +31,7 @@ def parchear_redis(monkeypatch, redis_fake):
 
 # ── Tests de creación ─────────────────────────────────────────────────
 
-@mock_dynamodb
+@mock_aws
 def test_crear_item_retorna_201(tabla_dynamodb):
     import handler
 
@@ -48,7 +48,7 @@ def test_crear_item_retorna_201(tabla_dynamodb):
     assert "id" in cuerpo
 
 
-@mock_dynamodb
+@mock_aws
 def test_crear_item_usa_id_provisto(tabla_dynamodb):
     import handler
 
@@ -62,7 +62,7 @@ def test_crear_item_usa_id_provisto(tabla_dynamodb):
     assert cuerpo["id"] == "prod-123"
 
 
-@mock_dynamodb
+@mock_aws
 def test_crear_item_body_invalido_retorna_400(tabla_dynamodb):
     import handler
 
@@ -74,7 +74,7 @@ def test_crear_item_body_invalido_retorna_400(tabla_dynamodb):
 
 # ── Tests de obtención (Cache-Aside) ──────────────────────────────────
 
-@mock_dynamodb
+@mock_aws
 def test_obtener_item_miss_lee_dynamodb(tabla_dynamodb):
     """Primera consulta: Redis vacío → lee DynamoDB."""
     import handler
@@ -92,7 +92,7 @@ def test_obtener_item_miss_lee_dynamodb(tabla_dynamodb):
     assert cuerpo["id"] == "a1"
 
 
-@mock_dynamodb
+@mock_aws
 def test_obtener_item_hit_usa_cache(tabla_dynamodb, redis_fake):
     """Segunda consulta: Redis tiene el ítem → retorna desde caché."""
     import handler
@@ -111,7 +111,7 @@ def test_obtener_item_hit_usa_cache(tabla_dynamodb, redis_fake):
     assert cuerpo["nombre"] == "Silla"
 
 
-@mock_dynamodb
+@mock_aws
 def test_obtener_item_no_existente_retorna_404(tabla_dynamodb):
     import handler
 
@@ -123,7 +123,7 @@ def test_obtener_item_no_existente_retorna_404(tabla_dynamodb):
 
 # ── Tests de eliminación ──────────────────────────────────────────────
 
-@mock_dynamodb
+@mock_aws
 def test_eliminar_item_existente(tabla_dynamodb, redis_fake):
     import handler
     import cache
@@ -144,7 +144,7 @@ def test_eliminar_item_existente(tabla_dynamodb, redis_fake):
     assert redis_fake.get(cache.cache_key_item("c3")) is None
 
 
-@mock_dynamodb
+@mock_aws
 def test_eliminar_item_no_existente_retorna_404(tabla_dynamodb):
     import handler
 
@@ -156,7 +156,7 @@ def test_eliminar_item_no_existente_retorna_404(tabla_dynamodb):
 
 # ── Tests de método no soportado ──────────────────────────────────────
 
-@mock_dynamodb
+@mock_aws
 def test_metodo_no_soportado_retorna_405(tabla_dynamodb):
     import handler
 

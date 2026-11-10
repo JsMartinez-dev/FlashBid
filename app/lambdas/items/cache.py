@@ -9,9 +9,11 @@ continúa funcionando (degraded mode → solo DynamoDB).
 import json
 import logging
 import os
+from typing import Any, cast
+
 import redis
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 def _get_client() -> redis.Redis:
@@ -23,17 +25,20 @@ def _get_client() -> redis.Redis:
     )
 
 
-def cache_get(key: str) -> dict | None:
+def cache_get(key: str) -> dict[str, Any] | None:
     """
     Busca una clave en Redis.
     Retorna el objeto deserializado o None si no existe / hay error.
     """
     try:
-        client = _get_client()
-        valor = client.get(key)
+        client: redis.Redis = _get_client()
+        # Con decode_responses=True redis-py retorna str, pero su firma
+        # declara bytes | str; cast() lo indica al type checker.
+        valor: str | None = cast(str | None, client.get(key))
         if valor:
             logger.info("CACHE HIT  key=%s", key)
-            return json.loads(valor)
+            datos: dict[str, Any] = json.loads(valor)
+            return datos
         logger.info("CACHE MISS key=%s", key)
         return None
     except redis.RedisError as e:
@@ -41,7 +46,7 @@ def cache_get(key: str) -> dict | None:
         return None
 
 
-def cache_set(key: str, valor: dict, ttl: int | None = None) -> bool:
+def cache_set(key: str, valor: dict[str, Any], ttl: int | None = None) -> bool:
     """
     Guarda un objeto en Redis con TTL en segundos.
     Retorna True si se guardó correctamente.
@@ -49,7 +54,7 @@ def cache_set(key: str, valor: dict, ttl: int | None = None) -> bool:
     if ttl is None:
         ttl = int(os.environ.get("REDIS_TTL", 300))
     try:
-        client = _get_client()
+        client: redis.Redis = _get_client()
         client.setex(key, ttl, json.dumps(valor))
         logger.info("CACHE SET  key=%s ttl=%ss", key, ttl)
         return True
@@ -64,7 +69,7 @@ def cache_delete(key: str) -> bool:
     Retorna True si se eliminó correctamente.
     """
     try:
-        client = _get_client()
+        client: redis.Redis = _get_client()
         client.delete(key)
         logger.info("CACHE DEL  key=%s", key)
         return True

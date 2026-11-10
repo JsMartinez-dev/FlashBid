@@ -234,21 +234,22 @@ proyecto-final/
 
 ### Flujo de trabajo
 
-1. `docker compose up --build` — levantar los tres contenedores
-2. `cdklocal bootstrap` — preparar el emulador *(solo la primera vez)*
-3. Escribir la infraestructura (`stack.py`) y los handlers Python
-4. `cdklocal deploy` — desplegar en el emulador
-5. Probar el API con `curl` o Postman → `localhost:4566`
-6. Verificar el caché con `redis-cli KEYS *`
-7. Ejecutar los tests con `python -m pytest tests/ -v`
+1. `docker compose up -d --build` — levantar los tres contenedores en segundo plano
+2. `docker compose exec cdk-dev bash` — abrir una shell dentro del contenedor de desarrollo *(los pasos 3–5 se ejecutan ahí)*
+3. `cdklocal bootstrap` — preparar el emulador *(la primera vez y después de cada reinicio del contenedor emulador, porque LocalStack Community no guarda estado)*
+4. Escribir la infraestructura (`stack.py`) y los handlers Python
+5. `cdklocal deploy` — desplegar en el emulador
+6. Probar el API con `curl` o Postman → `localhost:4566`
+7. Verificar el caché desde el host con `docker compose exec redis redis-cli KEYS '*'`
+8. Ejecutar los tests dentro de `cdk-dev` con `python -m pytest /tests -v` *(usan moto y fakeredis, no necesitan el emulador)*
 
 ### Elegir emulador
 
 Solo cambia la línea `image:` en `docker-compose.yml`. El nombre del servicio, el puerto 4566 y todas las variables de entorno son idénticos en ambas opciones.
 
 ```yaml
-# Opción A — LocalStack
-image: localstack/localstack
+# Opción A — LocalStack (4.14: última versión gratuita sin LOCALSTACK_AUTH_TOKEN)
+image: localstack/localstack:4.14
 
 # Opción B — MiniStack (más ligero)
 image: ministack/ministack
