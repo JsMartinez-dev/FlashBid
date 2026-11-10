@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
 
   # ─────────────────────────────────────────────────────────────────────
@@ -9,7 +7,9 @@ services:
   # ─────────────────────────────────────────────────────────────────────
   emulador:
     # Opción A — LocalStack (más completo, recomendado):
-    image: localstack/localstack
+    # Fijado a 4.14: las versiones posteriores ("latest", 2026.x) exigen
+    # LOCALSTACK_AUTH_TOKEN y sin él el contenedor sale con código 55.
+    image: localstack/localstack:4.14
     # Opción B — MiniStack (más ligero):
     # image: ministack/ministack
 
@@ -17,15 +17,17 @@ services:
     ports:
       - "4566:4566"
     environment:
-      SERVICES: "apigateway,lambda,dynamodb"
+      # cloudformation, iam, s3, ssm, sts y logs los necesita `cdklocal bootstrap/deploy`
+      SERVICES: "apigateway,lambda,dynamodb,cloudformation,iam,s3,ssm,sts,logs"
       DEBUG: "1"
-      LAMBDA_EXECUTOR: docker
       DOCKER_HOST: unix:///var/run/docker.sock
       # Necesario para que las Lambdas resuelvan redis dentro de la red
-      LAMBDA_DOCKER_NETWORK: proyecto-final_default
+      # Docker Compose crea una automáticamente la red <nombre-del-proyecto>_default
+      # y conecta a ella todos los servicios del compose.
+      LAMBDA_DOCKER_NETWORK: bd_no_sql_default
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./emulador-data:/tmp/localstack
+      - ./emulador-data:/var/lib/localstack
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
       interval: 10s
