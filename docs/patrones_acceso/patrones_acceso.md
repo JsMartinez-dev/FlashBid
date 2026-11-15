@@ -1,0 +1,43 @@
+# Patrones de acceso — FlashBid MVP 1
+
+**Estado:** propuesta técnica para implementar, no evidencia de funcionalidad existente. **Fecha:** 15 de noviembre de 2026.
+
+Fuentes: [especificación](../FlashBid_MVP1_Especificacion_Tecnica.md), [specs](../specs/README.md), [backlog](../backlog.md) y [referencia visual](../../referencias/01_Referencia_patrones_acceso.jpg).
+
+La tabla conserva las columnas de la imagen (pregunta, entidad, PK, SK, índice, claves GSI y frecuencia) y añade vista, operación, información y trazabilidad. Incluye lo que se consulta y lo que se almacena. Las frecuencias son estimaciones cualitativas, no mediciones. No se añaden estadísticas de compra ni órdenes de la imagen: no pertenecen al MVP simulado.
+
+## Convenciones
+
+- Una tabla `FlashBidTable`, claves string `PK` y `SK`. `uid` viene del token validado; `aid`, `bidId` y `requestId` son identificadores. Los prefijos son literales; lo que sigue a `#` se sustituye por el valor.
+- `t`, `createdAt` y `acceptedAt` en claves ordenables: UTC ISO 8601 con milisegundos y formato fijo. `expiresAt` se propone en milisegundos Unix para HTTP/Redis y `expiresAtMs` en la clave GSI3 con ancho fijo de 13 dígitos. `ttl=floor(expiresAt/1000)` en segundos Unix. Esta convención concreta debe registrarse en ADR y aplicarse uniformemente.
+- Importes: enteros positivos; disponible y reservado nunca negativos. `version` aumenta en cada mutación de subasta/billetera. Cada comando captura el reloj del servidor y verifica el vencimiento; el cliente no decide tiempos ni ganador.
+- Las claves indicadas en una Query expresan condiciones, no un ítem literal. `—` significa que no aplica GSI. Los GSI son eventualmente consistentes; ninguna validación financiera depende de ellos.
+- Accesos privados siempre restringidos al uid autenticado. Las respuestas públicas omiten emails, saldos ajenos, tokens y requestId. Credenciales y sesiones corresponden al proveedor de identidad, no a la tabla de negocio.
+
+## Tabla principal de accesos DynamoDB
+
+| # | Vista / proceso | Patrón de acceso (¿qué pregunta responde?) | Entidad | PK | SK | Índice | GSI PK | GSI SK | Frecuencia | Operación | Datos / regla | Casos de uso |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| PA-01 | Mi perfil | ¿Cuál es mi perfil? | Usuario | USER#uid | PROFILE | Tabla | — | — | Alta | GetItem fuerte | email, displayName, createdAt; nunca contraseña | CU-02-03 |
+| PA-02 | Registro | ¿Existe el perfil y cómo lo creo sin duplicarlo? | Usuario | USER#uid | PROFILE | Tabla | — | — | Por registro | Put condicional | uid del proveedor; condición de inexistencia; reintento recupera perfil | CU-02-01 |
+| PA-03 | Billetera | ¿Cuánto tengo disponible y reservado? | Billetera | USER#uid | WALLET | Tabla | — | — | Alta | GetItem fuerte | availableCredits, reservedCredits, version, initializedAt | CU-03-02 |
+| PA-04 | Billetera | ¿Cómo acredito 10.000 créditos una sola vez? | Billetera + movimiento | USER#uid | WALLET y MOVEMENT#t#INITIAL | Tabla | — | — | Una vez por cuenta | TransactWriteItems | Put condicional de billetera y movimiento INITIAL_CREDIT; sin saldo previo sobrescrito | CU-03-01 |
+| PA-05 | Billetera | ¿Cuáles son mis movimientos recientes? | Movimiento | USER#uid | begins_with MOVEMENT# | Tabla | — | — | Alta | Query descendente fuerte | tipo, importe, deltas disponible/reservado, auctionId, relatedUserId, operationId, fecha | CU-03-02 |
+| PA-06 | Publicar | ¿Cómo guardo una subasta ficticia nueva? | Subasta | AUCTION#aid | META | Tabla; alimenta GSI1/2 | Ver índices | Ver índices | Por publicación | PutItem condicional | sellerId, campos de producto, precio, estado, version, fechas, expiresAt, ttl e índices | CU-04-01 |
+| PA-07 | Mis subastas | ¿Puedo cancelar esta publicación? | Subasta | AUCTION#aid | META | Tabla | — | — | Por cancelación | GetItem fuerte + Update condicionado | sellerId propio, ACTIVE_NO_BIDS, version y now<expiresAt; CANCELLED, cancelledAt; quitar GSI1 y ttl | CU-04-02 |
+| PA-08 | Explorar | ¿Cuáles son las subastas activas más recientes? | Subasta | AUCTION#aid | META | GSI1 | AUCTIONS#ACTIVE | createdAt#aid | Alta | Query descendente + validación base | Tarjetas: título, imagen, precio, highestBid, leaderAlias, expiresAt, estado; excluir expiradas | CU-05-01 |
+| PA-09 | Detalle | ¿Cuál es el estado público vigente de esta subasta? | Subasta | AUCTION#aid | META | Tabla | — | — | Muy alta | Cache-Aside / GetItem fuerte | Snapshot público, sellerAlias, líder, precio, estado, version, expiresAt y serverNow | CU-05-02 |
+| PA-10 | Expiración | ¿Debo ocultarla aunque TTL no la haya borrado? | Subasta | AUCTION#aid | META | Tabla | — | — | Cada lectura/operación | Validación sobre registro leído | ACTIVE_NO_BIDS y now>=expiresAt: invisible; ttl solo limpieza asíncrona | CU-05-03 |
+| PA-11 | Pujar | ¿Sigue abierta y cuál es la oferta que debo superar? | Subasta | AUCTION#aid | META | Tabla | — | — | Cada intento | GetItem fuerte | sellerId, leaderId, highestBid, initialPrice, status, expiresAt, version | CU-06-01, CU-06-02 |
+| PA-12 | Pujar | ¿Qué saldos pueden reservarse y liberarse? | Billeteras | USER#nuevo y USER#anterior | WALLET | Tabla | — | — | Cada intento | GetItem fuerte / TransactGetItems | Disponible y reservado de participantes; condiciones de saldo/version en escritura posterior | CU-06-01, CU-06-02 |
+| PA-13 | Pujar | ¿Cómo acepto la primera oferta de forma atómica? | Subasta + billetera + puja + movimiento + request | Varias; ver TX-02 | Varias; ver TX-02 | Tabla; GSI1/2/3/4 | Ver índices | Ver índices | Por primera puja | TransactWriteItems | Reservar monto, quitar ttl, ACTIVE_BIDDING, líder y expiresAt=now+20s; auditoría e idempotencia | CU-06-01 |
+| PA-14 | Pujar | ¿Cómo reemplazo al líder sin perder créditos? | Subasta + billeteras + puja + movimientos + request | Varias; ver TX-03 | Varias; ver TX-03 | Tabla; GSI1/2/3/4 | Ver índices | Ver índices | Por puja aceptada | TransactWriteItems | Liberar anterior, reservar nuevo, cambiar líder/version/vencimiento, registrar ambas operaciones | CU-06-02 |
+| PA-15 | Pujar | ¿Ya se procesó este requestId? | Idempotencia | USER#uid | REQUEST#requestId | Tabla | — | — | Cada reintento | GetItem fuerte; Put en transacción | payloadHash, auctionId, bidId, result, acceptedAt, ttl independiente; cuerpo distinto da conflicto | CU-06-03 |
+| PA-16 | Detalle | ¿Qué ofertas fueron aceptadas en esta subasta? | Puja | AUCTION#aid | begins_with BID# | Tabla | — | — | Alta | Query descendente fuerte | bidId, alias público, amount, acceptedAt; no exponer requestId ni identidad privada | CU-06-04 |
+| PA-17 | Worker | ¿Qué subastas con pujas deben recuperarse o vencer? | Subasta | AUCTION#aid | META | GSI3 | AUCTIONS#ACTIVE_BIDDING | expiresAtMs#aid | Periódica y al reiniciar | Query ascendente paginada | Consultar todas al reconstruir; rango hasta now para pendientes; releer base antes del cierre | CU-07-01, CU-07-03 |
+| PA-18 | Worker | ¿Es válido cerrar este deadline? | Subasta | AUCTION#aid | META | Tabla | — | — | Por deadline | GetItem fuerte | ACTIVE_BIDDING, expiresAt<=now, version, líder e importe; si prorrogada reparar score | CU-07-01 |
+| PA-19 | Liquidación | ¿Cómo registro ganador y transfiero solo una vez? | Subasta + billeteras + movimientos + victoria | Varias; ver TX-04 | Varias; ver TX-04 | Tabla; retira GSI1/3 | Ver índices | Ver índices | Una vez por cierre | TransactWriteItems | FINISHED, winnerUserId, winningBidId, winningAmount, settlementId, finishedAt; crédito al vendedor | CU-07-02 |
+| PA-20 | Mis subastas | ¿Qué publicaciones son mías? | Subasta | AUCTION#aid | META | GSI2 | SELLER#uid | createdAt#aid | Media | Query descendente + validación base | Estado, título, imagen, precio, líder, vencimiento y resultado; canceladas retenidas | CU-09-01 |
+| PA-21 | Mis pujas | ¿En qué subastas he ofertado y cuánto? | Puja | AUCTION#aid | BID#t#bidId | GSI4 | BIDDER#uid | acceptedAt#bidId | Media | Query descendente + BatchGetItem de META | Historial propio; ofertas repetidas son filas distintas; resultado actual se obtiene de META | CU-09-02 |
+| PA-22 | Mis victorias | ¿Cuáles subastas gané y por qué monto? | Victoria | USER#uid | begins_with WON# | Tabla | — | — | Media | Query descendente fuerte | auctionId, winningBidId, winningAmount, finishedAt, sellerId y título/imagen de referencia | CU-09-03 |
+| PA-23 | Reconexión | ¿Qué cambió mientras estuve desconectado? | Subasta + billetera + pujas | AUCTION#aid y USER#uid | META, WALLET y BID# | Tabla | — | — | Por reconexión | Reutiliza detalle, billetera e historial | Snapshot/version autoritativo, serverNow y estado final; HTTP recupera eventos perdidos | CU-08-03 |
