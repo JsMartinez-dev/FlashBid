@@ -4,7 +4,7 @@
 |---|---|
 | GET /health | PA-32 |
 | Registro, login y logout del proveedor elegido | PA-02, PA-24 |
-| GET /me | PA-01, PA-03; inicialización PA-04 cuando corresponda al flujo de alta |
+| GET /me | PA-01, PA-03; inicializa PA-04 de manera idempotente |
 | GET /me/wallet/movements | PA-05 |
 | POST /auctions | PA-06 |
 | DELETE /auctions/{id} | PA-07, PA-26, PA-30 |

@@ -36,10 +36,12 @@ def _check_dynamodb() -> EstadoComponente:
         tabla: Any = dynamodb.Table(TABLE_NAME)
         tabla.load()   # describe la tabla; falla si no existe
         return {"estado": "ok", "tabla": TABLE_NAME}
-    except ClientError as e:
-        return {"estado": "error", "detalle": str(e)}
-    except Exception as e:
-        return {"estado": "error", "detalle": str(e)}
+    except ClientError:
+        logger.exception("DynamoDB health check failed")
+        return {"estado": "error"}
+    except Exception:
+        logger.exception("Unexpected DynamoDB health check failure")
+        return {"estado": "error"}
 
 
 def _check_redis() -> EstadoComponente:
@@ -53,8 +55,9 @@ def _check_redis() -> EstadoComponente:
         )
         cliente.ping()
         return {"estado": "ok", "host": host}
-    except redis.RedisError as e:
-        return {"estado": "error", "detalle": str(e)}
+    except redis.RedisError:
+        logger.exception("Redis health check failed")
+        return {"estado": "error"}
 
 
 def main(event: dict[str, Any], context: Any) -> RespuestaApi:
@@ -70,7 +73,10 @@ def main(event: dict[str, Any], context: Any) -> RespuestaApi:
 
     return {
         "statusCode": 200 if todo_ok else 503,
-        "headers": {"Content-Type": "application/json"},
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "http://localhost:5173",
+        },
         "body": json.dumps({
             "estado":   "ok" if todo_ok else "degradado",
             "dynamodb": db_status,

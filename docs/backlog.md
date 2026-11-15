@@ -10,10 +10,10 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 
 | Caso | Caso de uso a implementar | Estado | Evidencia |
 |---|---|---|---|
-| [CU-01-01](specs/01-entorno-local.md) | Arrancar y desplegar el entorno | Pendiente | — |
-| [CU-01-02](specs/01-entorno-local.md) | Verificar identidad y WebSocket emulados | Pendiente | — |
-| [CU-01-03](specs/01-entorno-local.md) | Consultar salud desde React | Pendiente | — |
-| [CU-01-04](specs/01-entorno-local.md) | Preparar accesos de datos | Pendiente | — |
+| [CU-01-01](specs/01-entorno-local.md) | Arrancar y desplegar el entorno | En validación | `scripts/setup-local.sh`, `docker compose config --quiet` |
+| [CU-01-02](specs/01-entorno-local.md) | Verificar identidad y WebSocket emulados | En validación | `docs/adr/001-local-identity-and-emulation.md` |
+| [CU-01-03](specs/01-entorno-local.md) | Consultar salud desde React | En validación | `frontend/src/main.tsx`, `/health` |
+| [CU-01-04](specs/01-entorno-local.md) | Preparar accesos de datos | En validación | `docs/adr/002-access-patterns-and-time.md` |
 
 ## Spec 02 — Identidad, perfil y sesión
 
@@ -21,9 +21,9 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 
 | Caso | Caso de uso a implementar | Estado | Evidencia |
 |---|---|---|---|
-| [CU-02-01](specs/02-identidad-sesion.md) | Registrar una cuenta | Pendiente | — |
-| [CU-02-02](specs/02-identidad-sesion.md) | Iniciar y cerrar sesión | Pendiente | — |
-| [CU-02-03](specs/02-identidad-sesion.md) | Autorizar acceso por identidad | Pendiente | — |
+| [CU-02-01](specs/02-identidad-sesion.md) | Registrar una cuenta | En validación | `auth_service/main.py`, `test_identity.py` |
+| [CU-02-02](specs/02-identidad-sesion.md) | Iniciar y cerrar sesión | En validación | `auth_service/main.py`, `frontend/src/main.tsx` |
+| [CU-02-03](specs/02-identidad-sesion.md) | Autorizar acceso por identidad | En validación | `lambdas/users/handler.py`, `test_identity.py` |
 
 ## Spec 03 — Billetera y crédito inicial
 
@@ -31,8 +31,8 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 
 | Caso | Caso de uso a implementar | Estado | Evidencia |
 |---|---|---|---|
-| [CU-03-01](specs/03-billetera-inicial.md) | Recibir créditos iniciales una sola vez | Pendiente | — |
-| [CU-03-02](specs/03-billetera-inicial.md) | Consultar saldos y movimientos | Pendiente | — |
+| [CU-03-01](specs/03-billetera-inicial.md) | Recibir créditos iniciales una sola vez | En validación | `wallets/repository.py`, `test_wallets.py` |
+| [CU-03-02](specs/03-billetera-inicial.md) | Consultar saldos y movimientos | En validación | `wallet/handler.py`, `test_wallets.py` |
 
 ## Spec 04 — Publicación y cancelación de subastas
 
@@ -40,8 +40,8 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 
 | Caso | Caso de uso a implementar | Estado | Evidencia |
 |---|---|---|---|
-| [CU-04-01](specs/04-publicacion-cancelacion.md) | Publicar un producto ficticio | Pendiente | — |
-| [CU-04-02](specs/04-publicacion-cancelacion.md) | Cancelar antes de la primera puja | Pendiente | — |
+| [CU-04-01](specs/04-publicacion-cancelacion.md) | Publicar un producto ficticio | En validación | `auctions/repository.py`, `test_auctions.py` |
+| [CU-04-02](specs/04-publicacion-cancelacion.md) | Cancelar antes de la primera puja | En validación | `auctions/repository.py`, `test_auctions.py` |
 
 ## Spec 05 — Catálogo, detalle y expiración sin pujas
 
@@ -103,3 +103,11 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 | [CU-10-01](specs/10-demo-validacion-entrega.md) | Preparar y repetir una demo | Pendiente | — |
 | [CU-10-02](specs/10-demo-validacion-entrega.md) | Verificar integridad y recuperación | Pendiente | — |
 | [CU-10-03](specs/10-demo-validacion-entrega.md) | Entregar y operar el MVP | Pendiente | — |
+
+# Evidencia de implementación
+
+## Specs 01 y 02
+
+- Rama: `dev`.
+- Comandos verificados: `uv run pytest -q`, `cd frontend && npm run build` y `cd app && npx aws-cdk synth`.
+- Resultado: 35 pruebas unitarias aprobadas; frontend y síntesis CDK aprobados.
