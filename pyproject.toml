@@ -1,0 +1,32 @@
+[project]
+name = "flashbid"
+version = "0.1.0"
+description = "FlashBid local development services and infrastructure"
+requires-python = ">=3.11"
+dependencies = [
+    "aws-cdk-lib>=2.100.0",
+    "boto3==1.43.126",
+    "botocore==1.43.126",
+    "constructs>=10.0.0",
+    "fastapi>=0.115,<1.0",
+    "email-validator>=2.2,<3.0",
+    "httpx>=0.28,<1.0",
+    "PyJWT>=2.10,<3.0",
+    "redis==8.1.0",
+    "uvicorn[standard]>=0.34,<1.0",
+]
+
+[dependency-groups]
+dev = [
+    "fakeredis>=2.20.0",
+    "moto[dynamodb]>=5.0.0",
+    "pytest>=8.0.0",
+    "pytest-mock>=3.12.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["app/tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

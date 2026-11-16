@@ -3,10 +3,14 @@ FROM python:3.11-slim
 
 # Instalar Node.js, npm, curl y git (necesarios para AWS CDK)
 RUN apt-get update && apt-get install -y \
-    nodejs \
-    npm \
     curl \
     git \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get update \
+    && apt-get install -y nodejs \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -18,18 +22,19 @@ RUN npm install -g aws-cdk aws-cdk-local
 # Directorio de trabajo para el código de la aplicación
 WORKDIR /app
 
-# Copiar e instalar dependencias Python antes de copiar el resto
-# (aprovecha la caché de capas de Docker)
-COPY app/requirements.txt .
-# requirements.txt incluye las dependencias de la Lambda Layer con -r
-COPY app/layers/dependencias/requirements.txt layers/dependencias/requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir uv
+WORKDIR /workspace
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen
+WORKDIR /app
 
 # Variables de entorno: credenciales dummy para el emulador
 # (el emulador acepta cualquier valor; no se usan credenciales reales)
 ENV AWS_ACCESS_KEY_ID=test
 ENV AWS_SECRET_ACCESS_KEY=test
 ENV AWS_DEFAULT_REGION=us-east-1
+ENV PATH=/workspace/.venv/bin:$PATH
+ENV UV_PROJECT_ENVIRONMENT=/workspace/.venv
 
 # El contenedor queda en bash para desarrollo interactivo
 CMD ["bash"]

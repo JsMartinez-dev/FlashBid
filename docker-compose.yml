@@ -70,8 +70,8 @@ services:
       dockerfile: Dockerfile
     container_name: cdk-dev
     volumes:
-      - ./app:/app
-    working_dir: /app
+      - ./:/workspace/project
+    working_dir: /workspace/project/app
     depends_on:
       emulador:
         condition: service_healthy
@@ -90,10 +90,46 @@ services:
       # Conexión a Redis
       REDIS_HOST: redis
       REDIS_PORT: "6379"
+      APP_ENV: local
+      JWT_SECRET: ${JWT_SECRET:-flashbid-local-development-secret}
+      JWT_ISSUER: ${JWT_ISSUER:-flashbid-local-auth}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-flashbid-web}
     # Se mantiene vivo para que puedas entrar con `docker compose exec cdk-dev bash`
     stdin_open: true
     tty: true
     command: bash
+
+  auth:
+    build:
+      context: .
+      dockerfile: auth_service/Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      emulador:
+        condition: service_healthy
+    environment:
+      AWS_ENDPOINT_URL: http://emulador:4566
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      TABLE_NAME: ${TABLE_NAME:-FlashBidTable}
+      JWT_SECRET: ${JWT_SECRET:-flashbid-local-development-secret}
+      JWT_ISSUER: ${JWT_ISSUER:-flashbid-local-auth}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-flashbid-web}
+      APP_ENV: local
+
+  frontend:
+    image: node:22-alpine
+    working_dir: /workspace
+    volumes:
+      - ./frontend:/workspace
+    ports:
+      - "5173:5173"
+    depends_on:
+      auth:
+        condition: service_started
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
 
 volumes:
   redis_data:

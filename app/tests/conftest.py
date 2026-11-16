@@ -14,6 +14,7 @@ from moto import mock_aws
 
 # Agrega lambdas/items al path para poder importar handler y cache
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../lambdas/items"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 # Dentro de cdk-dev, AWS_ENDPOINT_URL apunta al emulador; si se deja,
 # boto3 ignora moto y los tests escriben en LocalStack real.
