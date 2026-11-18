@@ -1,6 +1,6 @@
 # Spec 03 — Billetera y crédito inicial
 
-**Estado:** pendiente de implementación.  
+**Estado:** completado por indicación del usuario.
 **Dependencias:** 02.  
 **Trazabilidad:** secciones 2, 3.3, 5, 7, 9, 16 de la [especificación fuente](../FlashBid_MVP1_Especificacion_Tecnica.md).
 

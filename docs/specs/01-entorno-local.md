@@ -1,6 +1,6 @@
 # Spec 01 — Entorno local y base integrada
 
-**Estado:** pendiente de implementación.  
+**Estado:** completado por indicación del usuario.
 **Dependencias:** Ninguna.  
 **Trazabilidad:** secciones 1, 4, 5, 10, 11, 16 de la [especificación fuente](../FlashBid_MVP1_Especificacion_Tecnica.md).
 
