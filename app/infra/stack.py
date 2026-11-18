@@ -297,7 +297,7 @@ class ProyectoFinalStack(Stack):
         api: apigw.RestApi = apigw.RestApi(
             self,
             "Api",
-            rest_api_name="ProyectoFinal-API",
+            rest_api_name="FlashBid",
             description="API del proyecto final — DynamoDB + Redis + CDK",
             deploy_options=apigw.StageOptions(stage_name="prod"),
             default_cors_preflight_options=apigw.CorsOptions(

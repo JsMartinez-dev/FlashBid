@@ -10,7 +10,7 @@ app: cdk.App = cdk.App()
 
 ProyectoFinalStack(
     app,
-    "ProyectoFinalStack",
+    "FlashBid",
     env=cdk.Environment(
         account="000000000000",   # cuenta dummy para el emulador
         region="us-east-1",
