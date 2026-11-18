@@ -119,6 +119,31 @@ services:
       JWT_AUDIENCE: ${JWT_AUDIENCE:-flashbid-web}
       APP_ENV: local
 
+  worker:
+    build:
+      context: .
+      dockerfile: auth_service/Dockerfile
+    working_dir: /workspace
+    command: /workspace/.venv/bin/python -m worker.main
+    volumes:
+      - ./app/modules:/workspace/modules
+      - ./worker:/workspace/worker
+    environment:
+      AWS_ENDPOINT_URL: http://emulador:4566
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      TABLE_NAME: ${TABLE_NAME:-FlashBidTable}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      PYTHONPATH: /workspace
+    depends_on:
+      emulador:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
   frontend:
     image: node:22-alpine
     working_dir: /workspace

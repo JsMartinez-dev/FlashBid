@@ -1,0 +1,100 @@
+services:
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    # El volumen nombrado de desarrollo puede pertenecer a root.
+    user: "0:0"
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal
+    ports:
+      - "${DYNAMODB_LOCAL_PORT:-8002}:8000"
+    volumes:
+      - dynamodb_local_data:/home/dynamodblocal/data
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    ports:
+      - "${FLASHBID_REDIS_PORT:-6380}:6379"
+    volumes:
+      - redis_local_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: auth_service/Dockerfile
+    working_dir: /workspace
+    command: sh -c "/workspace/.venv/bin/python -m local_dev.init_db && /workspace/.venv/bin/uvicorn local_dev.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /workspace/local_dev --reload-dir /workspace/modules --reload-dir /workspace/auth_service"
+    volumes:
+      - ./auth_service:/workspace/auth_service
+      - ./app/modules:/workspace/modules
+      - ./local_dev:/workspace/local_dev
+    ports:
+      - "8000:8000"
+    environment:
+      AWS_ENDPOINT_URL: http://dynamodb:8000
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      TABLE_NAME: FlashBidTable
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      APP_ENV: local
+      JWT_SECRET: ${JWT_SECRET:-flashbid-local-development-secret}
+      JWT_ISSUER: ${JWT_ISSUER:-flashbid-local-auth}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-flashbid-web}
+      PYTHONPATH: /workspace
+      WATCHFILES_FORCE_POLLING: "true"
+    depends_on:
+      dynamodb:
+        condition: service_started
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: auth_service/Dockerfile
+    working_dir: /workspace
+    command: /workspace/.venv/bin/python -m worker.main
+    volumes:
+      - ./app/modules:/workspace/modules
+      - ./worker:/workspace/worker
+    environment:
+      AWS_ENDPOINT_URL: http://dynamodb:8000
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      TABLE_NAME: FlashBidTable
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      PYTHONPATH: /workspace
+    depends_on:
+      backend:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    image: node:22-alpine
+    working_dir: /workspace
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    volumes:
+      - ./frontend:/workspace
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+      VITE_AUTH_BASE_URL: http://localhost:8000
+    depends_on:
+      backend:
+        condition: service_started
+
+volumes:
+  dynamodb_local_data:
+  redis_local_data:

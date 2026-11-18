@@ -33,9 +33,9 @@ Estas propuestas se heredan como pendientes; no se convierten en decisiones apro
 |---|---|---|
 | Emulación y empaquetado | 01 | Probar edición instalada; documentar adaptadores y bundling. |
 | Índices, proyecciones y paginación | 01 y cada acceso nuevo | ADR con Query, límites y costos; incluir mis pujas, omitido en la tabla HTTP original. |
-| Primera oferta y autosuperación | 06 | Propuesta: primera oferta al menos precio inicial y prohibir que el líder se supere a sí mismo. |
+| Primera oferta y autosuperación | 06 | Confirmado: primera puja entera superior al precio inicial; líder no puede pujar hasta ser superado. |
 | Validación de URL, longitudes y límites por usuario | 04–06 | Definir límites concretos y códigos HTTP de errores; no inventar alcance adicional. |
-| TTL de idempotencia | 06 | Documentar ventana de reintentos independiente del TTL de subasta. |
+| TTL de idempotencia | 06 | Confirmado: siete días desde la aceptación, independiente del TTL de subasta; borrado físico asíncrono. |
 | Worker y unidades temporales | 07 | Definir invocación del cierre y unidad del Sorted Set; TTL DynamoDB en segundos Unix. |
 | WebSocket | 08 | Documentar adaptador, autorización y sincronización; outbox garantizado queda fuera del MVP. |
 

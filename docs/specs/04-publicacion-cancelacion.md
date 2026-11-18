@@ -1,6 +1,6 @@
 # Spec 04 — Publicación y cancelación de subastas
 
-**Estado:** pendiente de implementación.  
+**Estado:** completado por indicación del usuario.
 **Dependencias:** 03.  
 **Trazabilidad:** secciones 2, 3.1, 3.4, 5, 7, 9 de la [especificación fuente](../FlashBid_MVP1_Especificacion_Tecnica.md).
 

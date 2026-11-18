@@ -1,6 +1,6 @@
 # Spec 05 — Catálogo, detalle y expiración sin pujas
 
-**Estado:** pendiente de implementación.  
+**Estado:** completado por indicación del usuario.
 **Dependencias:** 04.  
 **Trazabilidad:** secciones 3.4, 5.1, 6.1, 7, 9 de la [especificación fuente](../FlashBid_MVP1_Especificacion_Tecnica.md).
 
@@ -37,3 +37,12 @@ Entregar catálogo, detalle y expiración sin pujas como incremento verificable 
 ## Criterio de cierre
 
 Todos los casos anteriores cumplen su aceptación con pruebas reproducibles, contratos documentados y una demostración integrada. Registrar evidencias en el backlog. Las decisiones abiertas aplicables deben quedar resueltas en ADR antes de cerrar el spec.
+
+## Contrato de implementación
+
+- `GET /auctions` y `GET /auctions/{id}` requieren `Authorization: Bearer <token>`.
+- El catálogo acepta `limit` entre 1 y 50 (20 por defecto) y `cursor` opaco. Devuelve `{items, nextCursor, serverNow}`; una página vacía puede incluir `nextCursor`. `serverNow` y `expiresAt` son milisegundos Unix.
+- El detalle devuelve los datos públicos y `serverNow`; una subasta inexistente, cancelada, finalizada o vencida devuelve 404.
+- `AUCTION_CACHE_TTL` configura el TTL de las instantáneas Redis, por defecto 3 segundos. Generaciones evitan llenar la caché con una lectura iniciada antes de una invalidación exitosa. Si Redis falla después de una escritura, la instantánea anterior puede persistir hasta su TTL; las operaciones críticas nunca la usan.
+- GSI1 es eventualmente consistente: se relee cada resultado de la tabla con lectura fuerte, aunque un registro nuevo puede tardar en aparecer.
+- Las rutas de FastAPI y Lambda usan los mismos servicios. El usuario informó la validación del spec; las evidencias y el alcance exacto de esa validación no se adjuntaron.

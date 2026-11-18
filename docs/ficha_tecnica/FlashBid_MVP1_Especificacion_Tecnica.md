@@ -1,5 +1,8 @@
 # FlashBid — Especificación técnica MVP 1
 
+> **Actualización posterior — reglas confirmadas del spec 06:** la primera puja debe ser un entero positivo estrictamente superior al precio inicial; el líder no puede volver a pujar hasta que otro usuario lo supere; la idempotencia se conserva durante siete días desde la aceptación. Estas decisiones prevalecen sobre propuestas anteriores en este documento. Ver [spec 06](../specs/06-pujas-reservas.md).
+
+
 **Estado:** alcance funcional aprobado (27 decisiones) · **Modalidad:** proyecto académico local · **Horizonte:** 7 días de desarrollo · **Fecha de consolidación:** 13 de noviembre de 2026
 
 > **Propósito.** Extender el proyecto de referencia de Bases de Datos NoSQL de la Universidad del Magdalena para construir un marketplace **simulado** de subastas rápidas. No hay dinero real, compraventa efectiva, envíos ni entregas. Los productos se publican únicamente como elementos ficticios para practicar DynamoDB, Redis, funciones Lambda y arquitectura serverless.

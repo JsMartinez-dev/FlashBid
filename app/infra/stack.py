@@ -1,13 +1,4 @@
-"""
-ProyectoFinalStack
-──────────────────
-Define la infraestructura serverless del proyecto final:
-  - Tabla DynamoDB  (Single Table Design, PK+SK)
-  - Lambda Layer    con las dependencias de las Lambdas (boto3, botocore, redis)
-  - Lambda /items   (POST, GET, DELETE) con patrón Cache-Aside sobre Redis
-  - Lambda /health  (GET) health check del servicio
-  - API Gateway     (RestApi) que enruta las peticiones
-"""
+
 import os
 import shutil
 import subprocess
@@ -27,7 +18,6 @@ from aws_cdk import (
 from aws_cdk import aws_iam as iam
 from constructs import Construct
 
-# Runtime común a todas las Lambdas y a la layer
 RUNTIME: _lambda.Runtime = _lambda.Runtime.PYTHON_3_11
 DIR_LAYER: str = "layers/dependencias"
 REQUIREMENTS_LAYER: str = os.path.join(DIR_LAYER, "requirements.txt")
@@ -36,6 +26,7 @@ REQUIREMENTS_LAYER: str = os.path.join(DIR_LAYER, "requirements.txt")
 # (es una función de LocalStack Pro). Cuando se despliega en el emulador
 # (cdk-dev define AWS_ENDPOINT_URL), las dependencias se empaquetan dentro
 # del código de cada Lambda en lugar de usar la layer.
+
 ES_LOCAL: bool = "AWS_ENDPOINT_URL" in os.environ
 
 
@@ -195,6 +186,7 @@ class ProyectoFinalStack(Stack):
             "TABLE_NAME": tabla.table_name,
             "REDIS_HOST": os.environ.get("REDIS_HOST", "redis"),
             "REDIS_PORT": os.environ.get("REDIS_PORT", "6379"),
+            "AUCTION_CACHE_TTL": os.environ.get("AUCTION_CACHE_TTL", "3"),
             "REDIS_TTL":  "300",   # segundos de vida en caché
             "APP_ENV": os.environ.get("APP_ENV", "local"),
             "JWT_SECRET": jwt_secret.value_as_string,
@@ -286,7 +278,17 @@ class ProyectoFinalStack(Stack):
             timeout=cdk.Duration.seconds(5),
         )
         lambda_auctions.add_to_role_policy(iam.PolicyStatement(
-            actions=["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem"],
+            actions=["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:Query"],
+            resources=[tabla.table_arn, f"{tabla.table_arn}/index/GSI1"],
+        ))
+
+        lambda_bids: _lambda.Function = _lambda.Function(
+            self, "BidsHandler", runtime=RUNTIME, handler="handler.main",
+            code=_codigo_lambda("lambdas/bids"), layers=layers,
+            environment=env_comun, timeout=cdk.Duration.seconds(10),
+        )
+        lambda_bids.add_to_role_policy(iam.PolicyStatement(
+            actions=["dynamodb:GetItem", "dynamodb:Query", "dynamodb:TransactWriteItems"],
             resources=[tabla.table_arn],
         ))
 
@@ -297,8 +299,8 @@ class ProyectoFinalStack(Stack):
         api: apigw.RestApi = apigw.RestApi(
             self,
             "Api",
-            rest_api_name="ProyectoFinal-API",
-            description="API del proyecto final — DynamoDB + Redis + CDK",
+            rest_api_name="FlashBid",
+            description="API del proyecto final De susbastas en linea",
             deploy_options=apigw.StageOptions(stage_name="prod"),
             default_cors_preflight_options=apigw.CorsOptions(
                 allow_origins=["http://localhost:5173"],
@@ -316,14 +318,20 @@ class ProyectoFinalStack(Stack):
 
         recurso_me: apigw.Resource = api.root.add_resource("me")
         recurso_me.add_method("GET", apigw.LambdaIntegration(lambda_users))
+        recurso_me.add_resource("wins").add_method("GET", apigw.LambdaIntegration(lambda_wallet))
         recurso_wallet: apigw.Resource = recurso_me.add_resource("wallet")
         recurso_movements: apigw.Resource = recurso_wallet.add_resource("movements")
         recurso_movements.add_method("GET", apigw.LambdaIntegration(lambda_wallet))
 
         recurso_auctions: apigw.Resource = api.root.add_resource("auctions")
         recurso_auctions.add_method("POST", apigw.LambdaIntegration(lambda_auctions))
+        recurso_auctions.add_method("GET", apigw.LambdaIntegration(lambda_auctions))
         recurso_auction_id: apigw.Resource = recurso_auctions.add_resource("{id}")
         recurso_auction_id.add_method("DELETE", apigw.LambdaIntegration(lambda_auctions))
+        recurso_auction_id.add_method("GET", apigw.LambdaIntegration(lambda_auctions))
+        recurso_bids = recurso_auction_id.add_resource("bids")
+        recurso_bids.add_method("GET", apigw.LambdaIntegration(lambda_bids))
+        recurso_bids.add_method("POST", apigw.LambdaIntegration(lambda_bids))
 
         # ── 6. OUTPUTS ────────────────────────────────────────────────
         CfnOutput(self, "ApiUrl",

@@ -1,6 +1,6 @@
 # Spec 02 — Identidad, perfil y sesión
 
-**Estado:** pendiente de implementación.  
+**Estado:** completado por indicación del usuario.
 **Dependencias:** 01.  
 **Trazabilidad:** secciones 2, 7, 9, 16 de la [especificación fuente](../FlashBid_MVP1_Especificacion_Tecnica.md).
 
