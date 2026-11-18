@@ -68,6 +68,23 @@ class WalletRepository:
             if result.get("LastEvaluatedKey") else None,
         }
 
+    def list_wins(self, uid: str, limit: int, cursor: str | None) -> dict[str, Any]:
+        query: dict[str, Any] = {
+            "KeyConditionExpression": "PK = :pk AND begins_with(SK, :prefix)",
+            "ExpressionAttributeValues": {":pk": f"USER#{uid}", ":prefix": "WON#"},
+            "ScanIndexForward": False, "Limit": limit, "ConsistentRead": True,
+        }
+        if cursor:
+            key = self._decode_cursor(cursor)
+            if not isinstance(key, dict) or set(key) != {"PK", "SK"} or key["PK"] != f"USER#{uid}" or not isinstance(key["SK"], str) or not key["SK"].startswith("WON#"):
+                raise ValueError("Invalid cursor")
+            query["ExclusiveStartKey"] = key
+        result = self._table.query(**query)
+        fields = ("auctionId", "title", "imageUrl", "winningAmount", "finishedAt")
+        items = [{k: int(item[k]) if k == "winningAmount" else item[k] for k in fields if k in item} for item in result.get("Items", [])]
+        key = result.get("LastEvaluatedKey")
+        return {"items": items, "nextCursor": self._encode_cursor(key) if key else None}
+
     @staticmethod
     def _public_wallet(wallet: dict[str, Any]) -> dict[str, Any]:
         return {key: wallet[key] for key in ("availableCredits", "reservedCredits", "version", "initializedAt")}

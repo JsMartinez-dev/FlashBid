@@ -318,6 +318,7 @@ class ProyectoFinalStack(Stack):
 
         recurso_me: apigw.Resource = api.root.add_resource("me")
         recurso_me.add_method("GET", apigw.LambdaIntegration(lambda_users))
+        recurso_me.add_resource("wins").add_method("GET", apigw.LambdaIntegration(lambda_wallet))
         recurso_wallet: apigw.Resource = recurso_me.add_resource("wallet")
         recurso_movements: apigw.Resource = recurso_wallet.add_resource("movements")
         recurso_movements.add_method("GET", apigw.LambdaIntegration(lambda_wallet))

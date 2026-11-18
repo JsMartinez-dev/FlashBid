@@ -16,6 +16,7 @@ from modules.auctions.service import AuctionService
 from modules.shared.auth import AuthenticationError, AuthenticatedUser, decode_bearer_token
 from modules.users.service import UserService
 from modules.wallets.service import WalletService
+from modules.wallets.repository import WalletRepository
 
 app = FastAPI(title="FlashBid — API local", description="Adaptador de desarrollo para DynamoDB Local y Redis.")
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173"],
@@ -69,6 +70,15 @@ def movements(limit: int = Query(default=20), cursor: str | None = None,
     try:
         return WalletService(table()).movements(user.uid, min(max(limit, 1), 50), cursor)
     except ValueError as error:
+        raise HTTPException(status_code=400, detail="Cursor inválido") from error
+
+
+@app.get("/me/wins", tags=["Perfil y billetera"])
+def wins(limit: int = Query(default=20, ge=1, le=50), cursor: str | None = None,
+         user: AuthenticatedUser = Depends(current_user)):
+    try:
+        return WalletRepository(table()).list_wins(user.uid, limit, cursor)
+    except (ValueError, TypeError, KeyError) as error:
         raise HTTPException(status_code=400, detail="Cursor inválido") from error
 
 

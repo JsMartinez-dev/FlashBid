@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Bids } from "./Bids";
 
-type Auction = { auctionId: string; title: string; description?: string; category?: string; imageUrl: string; initialPrice: number; highestBid?: number; leaderAlias?: string; leaderId?: string; sellerId?: string; sellerAlias?: string; expiresAt: number; status: string; serverNow?: number };
+type Auction = { auctionId: string; title: string; description?: string; category?: string; imageUrl: string; initialPrice: number; highestBid?: number; leaderAlias?: string; leaderId?: string; sellerId?: string; sellerAlias?: string; winnerUserId?: string; winnerAlias?: string; winningAmount?: number; expiresAt: number; status: string; serverNow?: number };
 type Page = { items: Auction[]; nextCursor: string | null; serverNow: number };
 
 export function AuctionCatalog({ api, token, uid, onWalletChange }: { api: string; token: string; uid: string; onWalletChange: () => void }) {
@@ -36,6 +36,22 @@ export function AuctionCatalog({ api, token, uid, onWalletChange }: { api: strin
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, []);
+  useEffect(() => {
+    if (!detail || detail.status === "FINISHED") return;
+    const id = detail.auctionId;
+    const timer = window.setInterval(async () => {
+      try {
+        const response = await fetch(`${api}/auctions/${encodeURIComponent(id)}`, { headers: { Authorization: `Bearer ${token}` } });
+        if (response.ok) {
+          const current: Auction = await response.json();
+          setDetail((previous) => previous?.auctionId === id ? current : previous);
+          if (current.serverNow !== undefined) setOffset(current.serverNow - Date.now());
+          if (current.status === "FINISHED") onWalletChange();
+        }
+      } catch { /* La siguiente consulta vuelve a intentar. */ }
+    }, 3000);
+    return () => window.clearInterval(timer);
+  }, [api, token, detail?.auctionId, detail?.status]);
   const remaining = (expiresAt: number) => Math.max(0, Math.ceil((expiresAt - (now + offset)) / 1000));
 
   async function showDetail(id: string) {
@@ -76,9 +92,10 @@ export function AuctionCatalog({ api, token, uid, onWalletChange }: { api: strin
       <p>{detail.description}</p><p>Categoría: {detail.category}</p><p>Vendedor: {detail.sellerAlias}</p>
       <p>Precio inicial: {detail.initialPrice} créditos</p><p>Mayor puja: {detail.highestBid ?? "Sin pujas"}</p>
       {detail.leaderAlias && <p>Líder: {detail.leaderAlias}</p>}
-      <p>{remaining(detail.expiresAt) > 0 ? `Tiempo restante: ${remaining(detail.expiresAt)} s` : "Esta subasta venció."}</p>
+      <p>{detail.status === "FINISHED" ? "Finalizada" : remaining(detail.expiresAt) > 0 ? `Tiempo restante: ${remaining(detail.expiresAt)} s` : "Finalizando..."}</p>
+      {detail.status === "FINISHED" && <p role="status">{detail.winnerUserId === uid ? "¡Felicidades! Ganaste la subasta." : detail.sellerId === uid ? `Tu subasta finalizó con ${detail.winningAmount} créditos. Ganador: ${detail.winnerAlias}.` : `Subasta finalizada. El ganador fue ${detail.winnerAlias}.`}</p>}
       <button type="button" onClick={() => void showDetail(detail.auctionId)}>Actualizar detalle</button>
-      {remaining(detail.expiresAt) > 0 && <Bids key={detail.auctionId} api={api} token={token} auctionId={detail.auctionId} sellerId={detail.sellerId} leaderId={detail.leaderId} uid={uid} onAccepted={() => { onWalletChange(); void showDetail(detail.auctionId); void load(); }} />}
+      {detail.status !== "FINISHED" && remaining(detail.expiresAt) > 0 && <Bids key={detail.auctionId} api={api} token={token} auctionId={detail.auctionId} sellerId={detail.sellerId} leaderId={detail.leaderId} uid={uid} onAccepted={() => { onWalletChange(); void showDetail(detail.auctionId); void load(); }} />}
     </article>}
   </section>;
 }

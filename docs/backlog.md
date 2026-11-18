@@ -70,9 +70,9 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 
 | Caso | Caso de uso a implementar | Estado | Evidencia |
 |---|---|---|---|
-| [CU-07-01](specs/07-cierre-liquidacion.md) | Detectar vencimientos y cerrar | Pendiente | — |
-| [CU-07-02](specs/07-cierre-liquidacion.md) | Liquidar una única vez | Pendiente | — |
-| [CU-07-03](specs/07-cierre-liquidacion.md) | Recuperar vencimientos tras fallos | Pendiente | — |
+| [CU-07-01](specs/07-cierre-liquidacion.md) | Detectar vencimientos y cerrar | En validación | Implementación y pruebas unitarias; integración local y LocalStack pendientes |
+| [CU-07-02](specs/07-cierre-liquidacion.md) | Liquidar una única vez | En validación | Implementación y pruebas unitarias; integración local y LocalStack pendientes |
+| [CU-07-03](specs/07-cierre-liquidacion.md) | Recuperar vencimientos tras fallos | En validación | Implementación y pruebas unitarias; integración local y LocalStack pendientes |
 
 ## Spec 08 — Actualizaciones WebSocket y reconexión
 

@@ -140,6 +140,6 @@ class AuctionRepository:
         keys = (
             "auctionId", "sellerId", "sellerAlias", "title", "description", "category", "imageUrl",
             "initialPrice", "status", "version", "createdAt", "expiresAt", "cancelledAt",
-            "highestBid", "leaderId", "leaderAlias",
+            "highestBid", "leaderId", "leaderAlias", "winnerUserId", "winnerAlias", "winningAmount", "winningBidId", "finishedAt",
         )
-        return {key: int(item[key]) if key in ("initialPrice", "version", "expiresAt", "highestBid") else item[key] for key in keys if key in item}
+        return {key: int(item[key]) if key in ("initialPrice", "version", "expiresAt", "highestBid", "winningAmount") else item[key] for key in keys if key in item}

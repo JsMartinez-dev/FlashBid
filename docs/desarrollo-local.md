@@ -33,3 +33,7 @@ docker compose -f docker-compose.local.yml down
 Los volúmenes conservan datos entre reinicios normales. `down -v` elimina los volúmenes y sus datos. Para usar otra vez el entorno serverless detén el local antes de levantar el otro. El JWT usa la configuración `.env` si existe; cambia el secreto antes de compartirlo.
 
 Las Lambdas y API Gateway no se ejecutan aquí: requieren validación separada en LocalStack. DynamoDB Local no reproduce exactamente TTL, consistencia, permisos y todos los comportamientos AWS; `expiresAt` sigue siendo la regla de vencimiento. Al cambiar el esquema, actualiza CDK e `init_db.py` y diseña la migración de tablas existentes.
+
+## Worker de cierre
+
+El Compose local incluye un servicio `worker`. Después de actualizar el Compose, ejecuta `docker compose -f docker-compose.local.yml up -d --build` y consulta sus logs con `docker compose -f docker-compose.local.yml logs -f worker`. El proceso reconcilia los vencimientos y procesa cierres automáticamente. Redis inaccesible puede retrasar la liquidación hasta su recuperación; no se habilitan pujas vencidas. La sección «Mis subastas ganadas» es simulada y no representa envíos.

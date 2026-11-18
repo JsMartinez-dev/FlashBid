@@ -21,18 +21,18 @@ class AuctionService:
     def list_active(self, uid: str, limit: int = 20, cursor: str | None = None) -> dict[str, Any]:
         return self._auctions.list_active(min(max(limit, 1), 50), cursor, uid)
 
-    #Cache-Aside
     def detail(self, auction_id: str) -> dict[str, Any] | None:
-
         cached, generation = cache_read(auction_id)
         now = int(datetime.now(timezone.utc).timestamp() * 1000)
-
-        if cached is not None and self._auctions.is_visible(cached, now):
+        if cached is not None and (cached.get("status") == "FINISHED" or self._auctions.is_visible(cached, now)):
             return {**cached, "serverNow": now}
         item = self._auctions.get(auction_id)
         now = int(datetime.now(timezone.utc).timestamp() * 1000)
-
-        if item is None or not self._auctions.is_visible(item, now):
+        if item is None:
+            return None
+        if item.get("status") == "ACTIVE_BIDDING" and int(item["expiresAt"]) <= now:
+            return {**item, "status": "FINALIZING", "serverNow": now}
+        if item.get("status") != "FINISHED" and not self._auctions.is_visible(item, now):
             return None
         cache_write(auction_id, item, generation)
         return {**item, "serverNow": now}
