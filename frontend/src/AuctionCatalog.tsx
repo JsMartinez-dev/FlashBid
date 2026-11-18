@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
+import { Bids } from "./Bids";
 
-type Auction = { auctionId: string; title: string; description?: string; category?: string; imageUrl: string; initialPrice: number; highestBid?: number; leaderAlias?: string; sellerAlias?: string; expiresAt: number; status: string; serverNow?: number };
+type Auction = { auctionId: string; title: string; description?: string; category?: string; imageUrl: string; initialPrice: number; highestBid?: number; leaderAlias?: string; leaderId?: string; sellerId?: string; sellerAlias?: string; expiresAt: number; status: string; serverNow?: number };
 type Page = { items: Auction[]; nextCursor: string | null; serverNow: number };
 
-export function AuctionCatalog({ api, token }: { api: string; token: string }) {
+export function AuctionCatalog({ api, token, uid, onWalletChange }: { api: string; token: string; uid: string; onWalletChange: () => void }) {
   const [items, setItems] = useState<Auction[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -77,6 +78,7 @@ export function AuctionCatalog({ api, token }: { api: string; token: string }) {
       {detail.leaderAlias && <p>Líder: {detail.leaderAlias}</p>}
       <p>{remaining(detail.expiresAt) > 0 ? `Tiempo restante: ${remaining(detail.expiresAt)} s` : "Esta subasta venció."}</p>
       <button type="button" onClick={() => void showDetail(detail.auctionId)}>Actualizar detalle</button>
+      {remaining(detail.expiresAt) > 0 && <Bids key={detail.auctionId} api={api} token={token} auctionId={detail.auctionId} sellerId={detail.sellerId} leaderId={detail.leaderId} uid={uid} onAccepted={() => { onWalletChange(); void showDetail(detail.auctionId); void load(); }} />}
     </article>}
   </section>;
 }

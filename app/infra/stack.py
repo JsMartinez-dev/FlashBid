@@ -282,6 +282,16 @@ class ProyectoFinalStack(Stack):
             resources=[tabla.table_arn, f"{tabla.table_arn}/index/GSI1"],
         ))
 
+        lambda_bids: _lambda.Function = _lambda.Function(
+            self, "BidsHandler", runtime=RUNTIME, handler="handler.main",
+            code=_codigo_lambda("lambdas/bids"), layers=layers,
+            environment=env_comun, timeout=cdk.Duration.seconds(10),
+        )
+        lambda_bids.add_to_role_policy(iam.PolicyStatement(
+            actions=["dynamodb:GetItem", "dynamodb:Query", "dynamodb:TransactWriteItems"],
+            resources=[tabla.table_arn],
+        ))
+
         # ── 5. API GATEWAY ────────────────────────────────────────────
         # LambdaRestApi crea automáticamente una integración proxy
         # entre API Gateway y la Lambda raíz.
@@ -318,6 +328,9 @@ class ProyectoFinalStack(Stack):
         recurso_auction_id: apigw.Resource = recurso_auctions.add_resource("{id}")
         recurso_auction_id.add_method("DELETE", apigw.LambdaIntegration(lambda_auctions))
         recurso_auction_id.add_method("GET", apigw.LambdaIntegration(lambda_auctions))
+        recurso_bids = recurso_auction_id.add_resource("bids")
+        recurso_bids.add_method("GET", apigw.LambdaIntegration(lambda_bids))
+        recurso_bids.add_method("POST", apigw.LambdaIntegration(lambda_bids))
 
         # ── 6. OUTPUTS ────────────────────────────────────────────────
         CfnOutput(self, "ApiUrl",

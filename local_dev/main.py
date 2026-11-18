@@ -6,6 +6,8 @@ import boto3
 import redis
 from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from modules.bids.service import BidError, BidService
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from auth_service.main import login, register
@@ -96,6 +98,22 @@ def publish(payload: dict[str, Any], user: AuthenticatedUser = Depends(current_u
         return result
     except AuctionValidationError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
+
+
+@app.exception_handler(BidError)
+def bid_error_handler(request, error: BidError):
+    return JSONResponse(status_code=error.status, content={"error": {"code": error.code, "message": error.message}})
+
+
+@app.post("/auctions/{auction_id}/bids", status_code=201, tags=["Pujas"])
+def place_bid(auction_id: str, payload: dict[str, Any], user: AuthenticatedUser = Depends(current_user)):
+    return BidService(table()).place(auction_id, user.uid, payload.get("amount"), payload.get("requestId"))
+
+
+@app.get("/auctions/{auction_id}/bids", tags=["Pujas"])
+def bid_history(auction_id: str, limit: int = Query(default=20, ge=1, le=50), cursor: str | None = None,
+                user: AuthenticatedUser = Depends(current_user)):
+    return BidService(table()).history(auction_id, user.uid, limit, cursor)
 
 
 @app.delete("/auctions/{auction_id}", tags=["Subastas"])

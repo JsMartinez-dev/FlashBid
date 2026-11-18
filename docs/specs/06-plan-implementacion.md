@@ -1,6 +1,6 @@
 # Plan de implementación — Spec 06: pujas y reservas
 
-**Estado:** planificación; no implementado. Las propuestas señaladas requieren decisión o formalización antes de implementarse. Fuente: [spec 06](06-pujas-reservas.md), [backlog](../backlog.md) y [especificación técnica](../ficha_tecnica/FlashBid_MVP1_Especificacion_Tecnica.md).
+**Estado:** planificación; no implementado. Las reglas de primera puja, autosuperación e idempotencia fueron confirmadas por el usuario; las demás propuestas requieren formalización. Fuente: [spec 06](06-pujas-reservas.md), [backlog](../backlog.md) y [especificación técnica](../ficha_tecnica/FlashBid_MVP1_Especificacion_Tecnica.md).
 
 ## Objetivo
 
@@ -30,7 +30,7 @@ Los códigos exactos de error y la forma definitiva de respuesta se formalizan a
 
 1. Validar token y extraer identidad del servidor; validar entero positivo, requestId y cuerpo.
 2. Buscar idempotencia por usuario y requestId con lectura fuerte. Comparar hash canónico que incluya auctionId y amount. Un resultado previo idéntico se devuelve sin volver a modificar saldos; un cuerpo distinto se rechaza.
-3. Leer con consistencia fuerte subasta y billeteras necesarias. Verificar que esté activa, no vencida (`now < expiresAt`), no sea propia, monto supere al líder y saldo disponible cubra reserva completa.
+3. Leer con consistencia fuerte subasta y billeteras necesarias. Verificar que esté activa, no vencida (`now < expiresAt`), no sea propia, monto supere el precio inicial en la primera puja o al líder en las siguientes, el participante no sea líder actual y su saldo disponible cubra la reserva completa.
 4. Ejecutar `TransactWriteItems`: condición de estado, versión, vencimiento y saldo; actualizar subasta y billeteras; guardar puja inmutable, movimientos y resultado de idempotencia. Primera puja retira TTL de subasta y establece `ACTIVE_BIDDING`; todas fijan `expiresAt = acceptedAt + 20s`.
 5. Después del commit, invalidar snapshot e intentar actualizar Sorted Set con vencimiento; un fallo Redis no revierte una puja aceptada. Preparar interfaz de reconciliación; el worker y reconstrucción duradera son del spec 07, por lo que no se promete cierre automático en el 06.
 6. Devolver el resultado persistido; al reenviar por timeout o conflicto de requestId, leer nuevamente registro idempotente. Manejar carreras con reintentos acotados y reloj actualizado.
@@ -49,16 +49,16 @@ La primera puja escribe subasta, billetera del comprador, movimiento de reserva,
 
 ## Decisiones aún abiertas
 
-- **Primera oferta:** propuesta igual o mayor al precio inicial; confirmar.
-- **Auto-superación del líder:** propuesta rechazarla para evitar actualizar dos veces la misma billetera; confirmar.
-- **Retención de requestId:** propuesta siete días desde aceptación; TTL es limpieza asíncrona y la deduplicación no se promete indefinidamente. Confirmar.
+- **Primera oferta — confirmada:** debe superar el precio inicial y ser un entero positivo; igualdad rechazada.
+- **Auto-superación — confirmada:** el líder no puede volver a pujar hasta que otro usuario lo supere.
+- **Retención de requestId — confirmada:** siete días desde aceptación; TTL es limpieza asíncrona y la deduplicación no se promete indefinidamente.
 - **Paginación:** propuesta 20 por defecto y máximo 50; definir cursor, validez y respuesta para subasta invisible.
 - **Condición temporal concurrente:** documentar reloj capturado inmediatamente antes de la transacción, límites del modelo (DynamoDB no aporta reloj de servidor en condiciones), reintentos y comportamiento frente al cierre.
 - **Reconciliación:** acordar cómo se registran deadlines si Redis falla y quién los reconstruirá en spec 07; no confundir expiración con cierre ya implementado.
 
 ## Pruebas y aceptación futuras
 
-- Primera puja en el precio mínimo acordado, vendedor prohibido, valores inválidos y límite exacto `now >= expiresAt`.
+- Primera puja igual al precio inicial rechazada y un entero superior aceptado; autosuperación y vendedor prohibidos, valores inválidos y límite exacto `now >= expiresAt`.
 - Reserva sin saldo suficiente, segunda puja mayor, liberación de líder y conservación global de créditos.
 - Dos ofertas simultáneas, doble requestId idéntico, requestId con cuerpo distinto y fallo transaccional sin cambios parciales.
 - Retirada del TTL de subasta, renovación de 20 segundos, registro inmutable y paginación del historial.
