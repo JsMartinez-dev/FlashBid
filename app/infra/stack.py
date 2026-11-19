@@ -1,13 +1,4 @@
-"""
-ProyectoFinalStack
-──────────────────
-Define la infraestructura serverless del proyecto final:
-  - Tabla DynamoDB  (Single Table Design, PK+SK)
-  - Lambda Layer    con las dependencias de las Lambdas (boto3, botocore, redis)
-  - Lambda /items   (POST, GET, DELETE) con patrón Cache-Aside sobre Redis
-  - Lambda /health  (GET) health check del servicio
-  - API Gateway     (RestApi) que enruta las peticiones
-"""
+
 import os
 import shutil
 import subprocess
@@ -18,15 +9,15 @@ import aws_cdk as cdk
 import jsii
 from aws_cdk import (
     Stack,
+    aws_apigateway as apigw,
     aws_dynamodb as ddb,
     aws_lambda as _lambda,
-    aws_apigateway as apigw,
     RemovalPolicy,
     CfnOutput,
 )
+from aws_cdk import aws_iam as iam
 from constructs import Construct
 
-# Runtime común a todas las Lambdas y a la layer
 RUNTIME: _lambda.Runtime = _lambda.Runtime.PYTHON_3_11
 DIR_LAYER: str = "layers/dependencias"
 REQUIREMENTS_LAYER: str = os.path.join(DIR_LAYER, "requirements.txt")
@@ -35,27 +26,31 @@ REQUIREMENTS_LAYER: str = os.path.join(DIR_LAYER, "requirements.txt")
 # (es una función de LocalStack Pro). Cuando se despliega en el emulador
 # (cdk-dev define AWS_ENDPOINT_URL), las dependencias se empaquetan dentro
 # del código de cada Lambda en lugar de usar la layer.
+
 ES_LOCAL: bool = "AWS_ENDPOINT_URL" in os.environ
 
 
 def _pip_install(requirements: str, destino: str) -> None:
     """Instala las dependencias en `destino` para el runtime de Lambda."""
+    uv = shutil.which("uv")
+    command = (
+        [uv, "pip", "install", "--python", sys.executable]
+        if uv
+        else [sys.executable, "-m", "pip", "install"]
+    )
+    platform_options = (
+        ["--python-platform", "x86_64-manylinux2014"]
+        if uv
+        else ["--platform", "manylinux2014_x86_64", "--implementation", "cp", "--no-compile"]
+    )
     subprocess.run(
-        [
-            sys.executable, "-m", "pip", "install",
+        command + [
             "--quiet",
             "--requirement", requirements,
             "--target", destino,
-            # Descargar wheels para el sistema y la versión de Python
-            # de Lambda, no los del contenedor de desarrollo
-            "--platform", "manylinux2014_x86_64",
-            "--implementation", "cp",
             "--python-version", "3.11",
             "--only-binary=:all:",
-            # Sin .pyc: hace el resultado reproducible (mismo hash de asset
-            # si no cambian las dependencias → no se redespliega sin motivo)
-            "--no-compile",
-        ],
+        ] + platform_options,
         check=True,
     )
 
@@ -87,7 +82,22 @@ class _PipLocal:
                 dirs_exist_ok=True,
                 ignore=shutil.ignore_patterns("__pycache__"),
             )
+            shared_modules = "modules"
+            if os.path.isdir(shared_modules):
+                shutil.copytree(
+                    shared_modules,
+                    os.path.join(output_dir, "modules"),
+                    dirs_exist_ok=True,
+                    ignore=shutil.ignore_patterns("__pycache__"),
+                )
         _pip_install(self.requirements, os.path.join(output_dir, self.subdir))
+        if self.subdir == "python" and os.path.isdir("modules"):
+            shutil.copytree(
+                "modules",
+                os.path.join(output_dir, "python", "modules"),
+                dirs_exist_ok=True,
+                ignore=shutil.ignore_patterns("__pycache__"),
+            )
         return True
 
 
@@ -116,6 +126,13 @@ class ProyectoFinalStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs: Any) -> None:
         super().__init__(scope, construct_id, **kwargs)
+        jwt_secret = cdk.CfnParameter(
+            self,
+            "JwtSecret",
+            type="String",
+            no_echo=True,
+            description="JWT signing secret for the local identity adapter",
+        )
 
         # ── 1. TABLA DYNAMODB ─────────────────────────────────────────
         # Single Table Design: PK y SK genéricos para soportar
@@ -123,6 +140,7 @@ class ProyectoFinalStack(Stack):
         tabla: ddb.Table = ddb.Table(
             self,
             "AppTable",
+            table_name="FlashBidTable",
             partition_key=ddb.Attribute(
                 name="PK",
                 type=ddb.AttributeType.STRING,
@@ -135,6 +153,32 @@ class ProyectoFinalStack(Stack):
             # DESTROY permite borrar la tabla al hacer `cdklocal destroy`
             # En producción usar RETAIN
             removal_policy=RemovalPolicy.DESTROY,
+            time_to_live_attribute="ttl",
+        )
+        tabla.add_global_secondary_index(
+            index_name="GSI1",
+            partition_key=ddb.Attribute(name="GSI1PK", type=ddb.AttributeType.STRING),
+            sort_key=ddb.Attribute(name="GSI1SK", type=ddb.AttributeType.STRING),
+            projection_type=ddb.ProjectionType.KEYS_ONLY,
+        )
+        tabla.add_global_secondary_index(
+            index_name="GSI2",
+            partition_key=ddb.Attribute(name="GSI2PK", type=ddb.AttributeType.STRING),
+            sort_key=ddb.Attribute(name="GSI2SK", type=ddb.AttributeType.STRING),
+            projection_type=ddb.ProjectionType.KEYS_ONLY,
+        )
+        tabla.add_global_secondary_index(
+            index_name="GSI3",
+            partition_key=ddb.Attribute(name="GSI3PK", type=ddb.AttributeType.STRING),
+            sort_key=ddb.Attribute(name="GSI3SK", type=ddb.AttributeType.STRING),
+            projection_type=ddb.ProjectionType.KEYS_ONLY,
+        )
+        tabla.add_global_secondary_index(
+            index_name="GSI4",
+            partition_key=ddb.Attribute(name="GSI4PK", type=ddb.AttributeType.STRING),
+            sort_key=ddb.Attribute(name="GSI4SK", type=ddb.AttributeType.STRING),
+            projection_type=ddb.ProjectionType.INCLUDE,
+            non_key_attributes=["amount", "acceptedAt", "bidId"],
         )
 
         # Variables de entorno comunes para todas las Lambdas
@@ -142,7 +186,12 @@ class ProyectoFinalStack(Stack):
             "TABLE_NAME": tabla.table_name,
             "REDIS_HOST": os.environ.get("REDIS_HOST", "redis"),
             "REDIS_PORT": os.environ.get("REDIS_PORT", "6379"),
+            "AUCTION_CACHE_TTL": os.environ.get("AUCTION_CACHE_TTL", "3"),
             "REDIS_TTL":  "300",   # segundos de vida en caché
+            "APP_ENV": os.environ.get("APP_ENV", "local"),
+            "JWT_SECRET": jwt_secret.value_as_string,
+            "JWT_ISSUER": os.environ.get("JWT_ISSUER", "flashbid-local-auth"),
+            "JWT_AUDIENCE": os.environ.get("JWT_AUDIENCE", "flashbid-web"),
         }
 
         # ── 2. LAMBDA LAYER (dependencias) ────────────────────────────
@@ -173,22 +222,7 @@ class ProyectoFinalStack(Stack):
             )
             layers.append(layer_dependencias)
 
-        # ── 3. LAMBDA /items ──────────────────────────────────────────
-        # Maneja POST /items, GET /items/{id} y DELETE /items/{id}
-        # Implementa Cache-Aside: consulta Redis antes de ir a DynamoDB
-        lambda_items: _lambda.Function = _lambda.Function(
-            self,
-            "ItemsHandler",
-            runtime=RUNTIME,
-            handler="handler.main",
-            code=_codigo_lambda("lambdas/items"),
-            layers=layers,
-            environment=env_comun,
-            timeout=cdk.Duration.seconds(10),
-        )
-        tabla.grant_read_write_data(lambda_items)
-
-        # ── 4. LAMBDA /health ─────────────────────────────────────────
+        # ── 3. LAMBDA /health ─────────────────────────────────────────
         # Health check: verifica conectividad con DynamoDB y Redis
         lambda_health: _lambda.Function = _lambda.Function(
             self,
@@ -200,7 +234,73 @@ class ProyectoFinalStack(Stack):
             environment=env_comun,
             timeout=cdk.Duration.seconds(5),
         )
-        tabla.grant_read_data(lambda_health)
+        lambda_health.add_to_role_policy(iam.PolicyStatement(
+            actions=["dynamodb:DescribeTable"], resources=[tabla.table_arn]
+        ))
+
+        lambda_users: _lambda.Function = _lambda.Function(
+            self,
+            "UsersHandler",
+            runtime=RUNTIME,
+            handler="handler.main",
+            code=_codigo_lambda("lambdas/users"),
+            layers=layers,
+            environment=env_comun,
+            timeout=cdk.Duration.seconds(5),
+        )
+        lambda_users.add_to_role_policy(iam.PolicyStatement(
+            actions=["dynamodb:GetItem", "dynamodb:TransactWriteItems"],
+            resources=[tabla.table_arn],
+        ))
+
+        lambda_wallet: _lambda.Function = _lambda.Function(
+            self,
+            "WalletHandler",
+            runtime=RUNTIME,
+            handler="handler.main",
+            code=_codigo_lambda("lambdas/wallet"),
+            layers=layers,
+            environment=env_comun,
+            timeout=cdk.Duration.seconds(5),
+        )
+        lambda_wallet.add_to_role_policy(iam.PolicyStatement(
+            actions=["dynamodb:Query"], resources=[tabla.table_arn],
+        ))
+
+        lambda_auctions: _lambda.Function = _lambda.Function(
+            self,
+            "AuctionsHandler",
+            runtime=RUNTIME,
+            handler="handler.main",
+            code=_codigo_lambda("lambdas/auctions"),
+            layers=layers,
+            environment=env_comun,
+            timeout=cdk.Duration.seconds(5),
+        )
+        lambda_auctions.add_to_role_policy(iam.PolicyStatement(
+            actions=["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:Query"],
+            resources=[tabla.table_arn, f"{tabla.table_arn}/index/GSI1"],
+        ))
+
+        lambda_bids: _lambda.Function = _lambda.Function(
+            self, "BidsHandler", runtime=RUNTIME, handler="handler.main",
+            code=_codigo_lambda("lambdas/bids"), layers=layers,
+            environment=env_comun, timeout=cdk.Duration.seconds(10),
+        )
+        lambda_bids.add_to_role_policy(iam.PolicyStatement(
+            actions=["dynamodb:GetItem", "dynamodb:Query", "dynamodb:TransactWriteItems"],
+            resources=[tabla.table_arn],
+        ))
+
+        lambda_activity = _lambda.Function(
+            self, "ActivityHandler", runtime=RUNTIME, handler="handler.main",
+            code=_codigo_lambda("lambdas/activity"), layers=layers,
+            environment=env_comun, timeout=cdk.Duration.seconds(10),
+        )
+        lambda_activity.add_to_role_policy(iam.PolicyStatement(
+            actions=["dynamodb:GetItem", "dynamodb:Query", "dynamodb:UpdateItem", "dynamodb:PutItem"],
+            resources=[tabla.table_arn, f"{tabla.table_arn}/index/GSI2", f"{tabla.table_arn}/index/GSI4"],
+        ))
 
         # ── 5. API GATEWAY ────────────────────────────────────────────
         # LambdaRestApi crea automáticamente una integración proxy
@@ -209,26 +309,14 @@ class ProyectoFinalStack(Stack):
         api: apigw.RestApi = apigw.RestApi(
             self,
             "Api",
-            rest_api_name="ProyectoFinal-API",
-            description="API del proyecto final — DynamoDB + Redis + CDK",
+            rest_api_name="FlashBid",
+            description="API del proyecto final De susbastas en linea",
             deploy_options=apigw.StageOptions(stage_name="prod"),
-        )
-
-        # /items  → GET (listar/obtener) y POST (crear)
-        recurso_items: apigw.Resource = api.root.add_resource("items")
-        recurso_items.add_method(
-            "POST",
-            apigw.LambdaIntegration(lambda_items),
-        )
-        # /items/{id}  → GET (obtener uno)
-        recurso_item_id: apigw.Resource = recurso_items.add_resource("{id}")
-        recurso_item_id.add_method(
-            "GET",
-            apigw.LambdaIntegration(lambda_items),
-        )
-        recurso_item_id.add_method(
-            "DELETE",
-            apigw.LambdaIntegration(lambda_items),
+            default_cors_preflight_options=apigw.CorsOptions(
+                allow_origins=["http://localhost:5173"],
+                allow_headers=["Authorization", "Content-Type"],
+                allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+            ),
         )
 
         # /health  → GET
@@ -237,6 +325,25 @@ class ProyectoFinalStack(Stack):
             "GET",
             apigw.LambdaIntegration(lambda_health),
         )
+
+        recurso_me: apigw.Resource = api.root.add_resource("me")
+        recurso_me.add_method("GET", apigw.LambdaIntegration(lambda_users))
+        recurso_me.add_resource("auctions").add_method("GET", apigw.LambdaIntegration(lambda_activity))
+        recurso_me.add_resource("bids").add_method("GET", apigw.LambdaIntegration(lambda_activity))
+        recurso_me.add_resource("wins").add_method("GET", apigw.LambdaIntegration(lambda_wallet))
+        recurso_wallet: apigw.Resource = recurso_me.add_resource("wallet")
+        recurso_movements: apigw.Resource = recurso_wallet.add_resource("movements")
+        recurso_movements.add_method("GET", apigw.LambdaIntegration(lambda_wallet))
+
+        recurso_auctions: apigw.Resource = api.root.add_resource("auctions")
+        recurso_auctions.add_method("POST", apigw.LambdaIntegration(lambda_auctions))
+        recurso_auctions.add_method("GET", apigw.LambdaIntegration(lambda_auctions))
+        recurso_auction_id: apigw.Resource = recurso_auctions.add_resource("{id}")
+        recurso_auction_id.add_method("DELETE", apigw.LambdaIntegration(lambda_auctions))
+        recurso_auction_id.add_method("GET", apigw.LambdaIntegration(lambda_auctions))
+        recurso_bids = recurso_auction_id.add_resource("bids")
+        recurso_bids.add_method("GET", apigw.LambdaIntegration(lambda_bids))
+        recurso_bids.add_method("POST", apigw.LambdaIntegration(lambda_bids))
 
         # ── 6. OUTPUTS ────────────────────────────────────────────────
         CfnOutput(self, "ApiUrl",

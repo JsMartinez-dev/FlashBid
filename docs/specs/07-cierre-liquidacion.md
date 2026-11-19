@@ -1,6 +1,6 @@
 # Spec 07 — Cierre automático, ganador y liquidación
 
-**Estado:** pendiente de implementación.  
+**Estado:** completado por indicación del usuario.
 **Dependencias:** 06.  
 **Trazabilidad:** secciones 3.3, 3.4, 5.1, 6.2, 12 de la [especificación fuente](../FlashBid_MVP1_Especificacion_Tecnica.md).
 
@@ -37,3 +37,12 @@ Entregar cierre automático, ganador y liquidación como incremento verificable 
 ## Criterio de cierre
 
 Todos los casos anteriores cumplen su aceptación con pruebas reproducibles, contratos documentados y una demostración integrada. Registrar evidencias en el backlog. Las decisiones abiertas aplicables deben quedar resueltas en ADR antes de cerrar el spec.
+
+## Decisiones de experiencia confirmadas
+
+- El detalle finalizado es visible para usuarios autenticados, sin exponer saldos privados. El periodo entre vencimiento y confirmación se muestra como `FINALIZING` (estado derivado, no persistido); después se muestra `FINISHED`.
+- El ganador ve una felicitación; el vendedor ve el monto y el ganador; los demás ven el alias ganador. La sección «Mis subastas ganadas» muestra los productos ganados como simulación; no hay pedidos ni envíos.
+- No existe cierre manual público. Una subasta con pujas no se puede cancelar; se mantiene la cancelación del vendedor antes de la primera puja.
+- El worker consulta Redis cada dos segundos, reconcilia GSI3 al inicio y cada 30 segundos y relee la tabla antes de cerrar. DynamoDB y la transacción condicionada deciden el resultado.
+- `GET /me/wins` devuelve victorias propias paginadas. Esta sección adelanta parte del spec 09; los demás historiales de ese spec siguen pendientes.
+- El servidor usa su reloj inmediatamente antes de la transacción. DynamoDB no proporciona un reloj de servidor dentro de la condición; hay que validar carreras temporales y sincronización del reloj en integración.

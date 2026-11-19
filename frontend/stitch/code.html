@@ -1,0 +1,367 @@
+<!DOCTYPE html><html lang="es" style="min-height: 100%;"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_standard" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet"><style>body, * { font-family: 'Roboto', sans-serif; } .font-mono-num { font-family: 'Space Mono', monospace; font-variant-numeric: tabular-nums; } .material-symbols-outlined { font-family: 'Material Symbols Outlined' !important; font-style: normal; font-weight: normal; display: inline-block; line-height: 1; text-transform: none; letter-spacing: normal; word-wrap: normal; white-space: nowrap; direction: ltr; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; -moz-osx-font-smoothing: grayscale; font-feature-settings: 'liga'; }</style><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"surface-container-highest":"#e2e3e0","on-error":"#ffffff","on-surface":"#1a1c1b","on-secondary":"#ffffff","on-primary-fixed":"#1c1b1b","primary-container":"#1c1b1b","on-error-container":"#93000a","on-secondary-container":"#5d636b","primary":"#000000","surface-tint":"#5f5e5e","on-primary-container":"#858383","primary-fixed-dim":"#c8c6c5","on-tertiary-fixed":"#1a1c1a","surface-container-high":"#e8e8e5","on-tertiary-fixed-variant":"#454745","surface":"#f9f9f6","error":"#ba1a1a","on-background":"#1a1c1b","on-tertiary-container":"#838482","inverse-on-surface":"#f1f1ee","surface-container":"#eeeeeb","background":"#f9f9f6","outline":"#747878","on-secondary-fixed":"#161c23","on-surface-variant":"#444748","tertiary-container":"#1a1c1a","on-primary-fixed-variant":"#474746","inverse-primary":"#c8c6c5","tertiary-fixed-dim":"#c6c7c4","secondary-fixed":"#dde3ec","outline-variant":"#c4c7c7","on-secondary-fixed-variant":"#41474f","primary-fixed":"#e5e2e1","surface-dim":"#dadad7","on-primary":"#ffffff","inverse-surface":"#2f312f","on-tertiary":"#ffffff","secondary-container":"#dae0e9","surface-variant":"#e2e3e0","surface-container-lowest":"#ffffff","tertiary-fixed":"#e3e3e0","secondary":"#595f67","tertiary":"#000000","surface-container-low":"#f4f4f1","surface-bright":"#f9f9f6","secondary-fixed-dim":"#c1c7d0","error-container":"#ffdad6"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"gutter-mobile":"1rem","space-2xl":"4rem","space-sm":"0.5rem","margin-mobile":"1rem","space-md":"1rem","gutter":"1.5rem","space-xs":"0.25rem","margin":"2.5rem","space-lg":"1.5rem","space-xl":"2.5rem"},"fontFamily":{"body-lg":["Roboto"],"label-mono-md":["Space Mono"],"body-md":["Roboto"],"headline-lg":["Roboto"],"label-mono-lg":["Space Mono"],"label-mono-sm":["Space Mono"],"body-sm":["Roboto"],"headline-sm":["Roboto"],"headline-md":["Roboto"]}}}}</script><style>.catalog-slide { transition: filter 0.3s ease, opacity 0.3s ease, transform 0.3s ease; } #catalog-track .catalog-slide:not(.is-active):not(:hover) { filter: blur(2px); opacity: 0.6; } #catalog-track .catalog-slide.is-active, #catalog-track .catalog-slide:hover { filter: blur(0); opacity: 1; }</style></head><body class="bg-surface font-body-md text-on-surface antialiased min-h-screen flex flex-col justify-between"><header class="fixed top-0 left-0 right-0 z-50 bg-surface/90 backdrop-blur-md border-b border-surface-container shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-margin-mobile md:px-margin flex items-center justify-between"><div class="flex items-center gap-space-xl"><a class="flex items-center gap-space-xs text-primary transition-opacity hover:opacity-80" data-path="explorar" href="#"><span class="font-bold text-lg tracking-tight text-primary uppercase">FlashBid</span></a><nav class="hidden lg:flex items-center gap-space-lg" data-active-classes="text-primary font-semibold border-b border-primary pb-0.5"><a aria-current="page" class="transition-colors text-primary font-semibold border-b border-primary pb-0.5" data-path="explorar" href="#">Explorar</a><a class="text-on-surface-variant hover:text-on-surface transition-colors" data-path="mis-subastas" href="#">Mis subastas</a><a class="text-on-surface-variant hover:text-on-surface transition-colors" data-path="mis-pujas" href="#">Mis pujas</a><a class="text-on-surface-variant hover:text-on-surface transition-colors" data-path="billetera" href="#">Billetera</a></nav></div><div class="flex items-center gap-space-md"><div class="hidden sm:flex items-center gap-space-xs px-3 py-1.5 rounded-full bg-surface-container-high text-on-surface"><span class="material-symbols-outlined text-[16px] text-outline">toll</span><span class="font-mono-num text-[11px] tracking-wider font-semibold">8.450 PTS</span></div><a class="inline-flex items-center px-4 py-1.5 rounded-DEFAULT bg-primary text-on-primary text-xs font-medium hover:bg-neutral-800 transition-all" data-path="nueva-subasta" href="#"><span class="material-symbols-outlined text-[16px] mr-1">add</span>Publicar subasta</a><div class="flex items-center gap-space-xs pl-space-xs"><span class="hidden md:inline font-mono-num text-[11px] text-on-surface-variant">@alex_creator</span><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></div></header><main class="w-full pt-16 bg-surface flex-1"><div class="flex flex-col w-full">
+<!-- Brand Header Banner -->
+<div class="w-full flex flex-col justify-center items-center pt-10 pb-6"><img alt="FlashBid Logo" class="h-24 md:h-32 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBpMzMC97RWkuUFoEt8eLcMDeWW4qk6q_xisQMYo8IE3l4zdWNc7L9wssunBGX89Us9YHVLsO1o8qUYkNLmUhppfv99XJU5r1zbUjjUkny2QzJy_XjPIgHmqTDFhYJKM_KRiI8q2foEGcYyY3isJoB6EimoR-gV_AI4VnMrLH3Y_eDwLZX44hGlDzGT_myaKuIP4A9Z-Tt24cUsqIsQOgrn98VSxjmGaezvFtf4eCd0junPPs3Uca3"><p class="mt-2 text-on-surface-variant font-medium text-xs md:text-sm tracking-widest text-center uppercase">Subastas rápidas en tiempo real con créditos virtuales</p></div>
+<!-- Featured Section: "El tiempo está corriendo" -->
+<section class="w-full bg-surface-container-low py-space-xl px-margin-mobile md:px-margin border-y border-surface-container">
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-space-lg gap-space-sm">
+<div>
+<div class="flex items-center gap-2 mb-1.5">
+<span class="w-2 h-2 rounded-full bg-error animate-ping"></span>
+
+</div>
+<h2 class="text-2xl md:text-3xl font-semibold text-primary tracking-tight">El tiempo está corriendo</h2>
+</div>
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-space-xs">
+<button aria-label="Anterior destacado" class="w-9 h-9 rounded-DEFAULT border border-outline-variant bg-surface-container-lowest flex items-center justify-center text-primary hover:bg-surface-container-highest transition-all" id="hero-prev-btn">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+</button>
+<button aria-label="Siguiente destacado" class="w-9 h-9 rounded-DEFAULT border border-outline-variant bg-surface-container-lowest flex items-center justify-center text-primary hover:bg-surface-container-highest transition-all" id="hero-next-btn">
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Featured Track -->
+<div class="relative overflow-hidden w-full">
+<div class="flex transition-transform duration-500 ease-in-out gap-space-lg" id="carousel-track" style="transform: translateX(-50%);">
+<!-- Slide 1 -->
+<div class="w-full md:w-[60%] lg:w-[48%] flex-shrink-0 bg-surface-container-lowest rounded-xl overflow-hidden border border-surface-container shadow-sm flex flex-col justify-between">
+<div class="relative aspect-[16/10] bg-surface-container-high overflow-hidden"><img alt="Leica Summilux-M 35mm f/1.4 ASPH" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuApfFz872i8IhXlQnIVjB239MIXIyz_itbpzvDtH5uE6pSCV5b4m4h7yKThgPUUVm-yjZPY2xxgcPWnmmtrt0_HvXHfSk_cBZPY2YuIFXe6ASqS_ImVG5mRcmSiGnUkGDOMC-OrUMOCbkPf0Vnq5xOYFmV1y7BSKqERNLAKTCMbmZcnoJe_SAGBL-QSRhiMoqRn0D68iAEvsI6KlZYUREiVrLl2DkCHs07NE2xjwBM">
+<span class="absolute top-3 right-3 px-2 py-1 bg-black/80 backdrop-blur-sm text-white font-mono-num text-xs rounded">04:12s</span>
+</div>
+<div class="p-space-lg flex flex-col justify-between flex-grow gap-space-md">
+<div><h3 class="text-lg font-semibold text-primary tracking-tight">Leica Summilux-M 35mm f/1.4 ASPH</h3></div>
+<div class="pt-space-md flex items-center justify-between border-t border-surface-container">
+<div><span class="font-mono-num text-[10px] text-on-surface-variant uppercase tracking-wider block">Puja actual</span><span class="font-mono-num text-base font-bold text-primary">4.850 PTS</span></div>
+<a class="inline-flex items-center gap-1.5 px-4 py-2 rounded-DEFAULT bg-primary text-on-primary text-xs font-medium hover:bg-neutral-800 transition-colors" href="#"><span>Pujar ahora</span><span class="material-symbols-outlined text-[14px]">arrow_forward</span></a>
+</div>
+</div>
+</div>
+<!-- Slide 2 -->
+<div class="w-full md:w-[60%] lg:w-[48%] flex-shrink-0 bg-surface-container-lowest rounded-xl overflow-hidden border shadow-sm flex flex-col justify-between border-primary hover:shadow-md">
+<div class="relative aspect-[16/10] bg-surface-container-high overflow-hidden"><img alt="Teenage Engineering OP-1 Field" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYOJx86YkSnAL3tq5s7zWmliqWvOr4SBWfxKHHof8QiaQ2oaGUdwvB311WOVvFeL2dtz4AEitKhUmBD0irALyFK4kJMLyQ1cd5z6q9fV0wPjGN7_yFDdFdIUjVh-fU7hfxLKPTa_46YkEyVe1LQuucOXqsTCRhV_87v71DNaRsPaj13KkuZxfPTACWoNgBurBwSRgB6PYNdTXUZ_Fx1xEJMe-ly0cFV87eQ4jxcLs">
+<span class="absolute top-3 right-3 px-2 py-1 bg-black/80 backdrop-blur-sm text-white font-mono-num text-xs rounded">01:45s</span>
+</div>
+<div class="p-space-lg flex flex-col justify-between flex-grow gap-space-md">
+<div><h3 class="text-lg font-semibold text-primary tracking-tight">Teenage Engineering OP-1 Field</h3></div>
+<div class="pt-space-md flex items-center justify-between border-t border-surface-container">
+<div><span class="font-mono-num text-[10px] text-on-surface-variant uppercase tracking-wider block">Puja actual</span><span class="font-mono-num text-base font-bold text-primary">3.920 PTS</span></div>
+<a class="inline-flex items-center gap-1.5 px-4 py-2 rounded-DEFAULT bg-primary text-on-primary text-xs font-medium hover:bg-neutral-800 transition-colors" href="#"><span>Pujar ahora</span><span class="material-symbols-outlined text-[14px]">arrow_forward</span></a>
+</div>
+</div>
+</div>
+<!-- Slide 3 -->
+<div class="w-full md:w-[60%] lg:w-[48%] flex-shrink-0 bg-surface-container-lowest rounded-xl overflow-hidden border border-surface-container shadow-sm flex flex-col justify-between">
+<div class="relative aspect-[16/10] bg-surface-container-high overflow-hidden"><img alt="NOMOS Glashütte Tangente 38" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkzqQndidYhPQXbir8daxcXYE09ZOttakCGDhi__Yu77YzDtppGg39dFE6mBTDWrUtJFq55RPFb1zCbWwA0oTEi8wm_vgHTNdkmzAja958VFNxlWjDTZQj8BMinMJ0ZY6akqNdRZOq3wlFLZ6hioSWDxNLYuA-8wRBWp6WiE1zbfeNDSjQEdQ0fDYbIpy9a7IxSPM73gp4U5zB8YJrYt8LDXyN092eZ9kTqlTSHq4">
+<span class="absolute top-3 right-3 px-2 py-1 bg-black/80 backdrop-blur-sm text-white font-mono-num text-xs rounded">08:20s</span>
+</div>
+<div class="p-space-lg flex flex-col justify-between flex-grow gap-space-md">
+<div><h3 class="text-lg font-semibold text-primary tracking-tight">NOMOS Glashütte Tangente 38</h3></div>
+<div class="pt-space-md flex items-center justify-between border-t border-surface-container">
+<div><span class="font-mono-num text-[10px] text-on-surface-variant uppercase tracking-wider block">Puja actual</span><span class="font-mono-num text-base font-bold text-primary">5.120 PTS</span></div>
+<a class="inline-flex items-center gap-1.5 px-4 py-2 rounded-DEFAULT bg-primary text-on-primary text-xs font-medium hover:bg-neutral-800 transition-colors" href="#"><span>Pujar ahora</span><span class="material-symbols-outlined text-[14px]">arrow_forward</span></a>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Live Catalog Carousel Section ("Subastas disponibles") -->
+<section aria-label="Subastas disponibles" class="w-full py-space-2xl outline-none focus:outline-none" id="catalogo" tabindex="0">
+<!-- Header & Controls -->
+<div class="px-margin-mobile md:px-margin flex flex-col md:flex-row md:items-end justify-between gap-space-md mb-space-xl">
+<div>
+<h2 class="text-2xl md:text-3xl font-semibold text-primary tracking-tight">Subastas disponibles</h2>
+
+</div>
+<div class="flex items-center gap-space-md self-start md:self-end">
+<span class="font-mono-num text-sm text-on-surface-variant font-medium" id="catalog-carousel-indicator">01 / 06</span>
+<div class="flex items-center gap-2">
+<button aria-label="Lote anterior" class="w-10 h-10 rounded-DEFAULT border border-outline-variant bg-surface-container-lowest flex items-center justify-center text-primary hover:bg-surface-container-highest transition-all cursor-pointer shadow-sm active:scale-95" id="catalog-prev-btn" type="button">
+<span class="material-symbols-outlined text-[20px] select-none pointer-events-none">arrow_back</span>
+</button>
+<button aria-label="Siguiente lote" class="w-10 h-10 rounded-DEFAULT border border-outline-variant bg-surface-container-lowest flex items-center justify-center text-primary hover:bg-surface-container-highest transition-all cursor-pointer shadow-sm active:scale-95" id="catalog-next-btn" type="button">
+<span class="material-symbols-outlined text-[20px] select-none pointer-events-none">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Lucent Infinite Focus Carousel Viewport -->
+<div class="relative w-full overflow-hidden select-none cursor-grab active:cursor-grabbing px-margin-mobile md:px-margin" id="catalog-viewport">
+<!-- Horizontal Track -->
+<div class="flex items-stretch gap-5 transition-transform duration-500 ease-out will-change-transform" id="catalog-track" style="transform: translateX(0px);">
+<!-- Product Card 1: Keychron Q1 Pro -->
+<article class="catalog-slide group flex-shrink-0 w-[280px] sm:w-[320px] lg:w-[340px] flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden border border-surface-container shadow-sm hover:shadow-md transition-all duration-300" data-index="0">
+<div class="relative aspect-square bg-surface-container-high overflow-hidden">
+<img alt="Keychron Q1 Pro" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwjdV8OvyZdiYVquqjVkghTumLaVmhXBF60biFgrdHeegD-Y1y-60bsGfmLD3oOU_JldeLks61n6bmRxVOW6tSmUtfyIiE9F22XA-nVIa-yYm-SfShk_gy4QnG2Wsba-rwcthPuDML46Fi8h5kVpbgwBGecMQWGVhWZj7N0GbhC7rcOVynY3pTW6ztAG-TO4oSMduGgJD1HbOZr5KfhFcwH5lp4EASNs-06FoEBvQ">
+</div>
+<div class="p-space-md flex flex-col justify-between flex-grow gap-space-sm bg-surface-container-lowest">
+<h3 class="text-base font-semibold text-primary tracking-tight">Keychron Q1 Pro</h3>
+<div class="pt-space-xs flex items-center justify-between border-t border-surface-container mt-auto">
+<div>
+<span class="font-mono-num text-[10px] text-on-surface-variant block uppercase tracking-wider">Puja actual</span>
+<span class="font-mono-num text-sm font-bold text-primary">3.240 PTS</span>
+</div>
+<button class="px-3.5 py-1.5 rounded-DEFAULT bg-surface-container hover:bg-primary hover:text-on-primary text-primary font-medium text-xs transition-colors cursor-pointer" type="button">Pujar</button>
+</div>
+</div>
+</article>
+<!-- Product Card 2: Sennheiser HD 800 S -->
+<article class="catalog-slide group flex-shrink-0 w-[280px] sm:w-[320px] lg:w-[340px] flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden border border-surface-container shadow-sm hover:shadow-md transition-all duration-300 is-active" data-index="1">
+<div class="relative aspect-square bg-surface-container-high overflow-hidden">
+<img alt="Sennheiser HD 800 S" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqWgIbSjJkDC-HmC8szoa-yRgGerE7pI7K5Y79ss6joFTaxjnFZa3lxItrzpvKYfLhg0qaAybUrLC9wDdVeGbg4Cb1uYzHCMhrFgR8Ib_NB9A4nOlg7i7dqiXxtPLKoZPTu3VrgJigYFcgkRzt817c4YVy09DmIwrUB0QzLGCYr4KZOyr2ZSdQrSidXI_xfaQo9Ft6l1J47BeC2UQpS9PRJgLbBQsYbSkDN7QqEcw">
+</div>
+<div class="p-space-md flex flex-col justify-between flex-grow gap-space-sm bg-surface-container-lowest">
+<h3 class="text-base font-semibold text-primary tracking-tight">Sennheiser HD 800 S</h3>
+<div class="pt-space-xs flex items-center justify-between border-t border-surface-container mt-auto">
+<div>
+<span class="font-mono-num text-[10px] text-on-surface-variant block uppercase tracking-wider">Puja actual</span>
+<span class="font-mono-num text-sm font-bold text-primary">5.500 PTS</span>
+</div>
+<button class="px-3.5 py-1.5 rounded-DEFAULT bg-surface-container hover:bg-primary hover:text-on-primary text-primary font-medium text-xs transition-colors cursor-pointer" type="button">Pujar</button>
+</div>
+</div>
+</article>
+<!-- Product Card 3: Steam Deck OLED 1TB -->
+<article class="catalog-slide group flex-shrink-0 w-[280px] sm:w-[320px] lg:w-[340px] flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden border border-surface-container shadow-sm hover:shadow-md transition-all duration-300" data-index="2">
+<div class="relative aspect-square bg-surface-container-high overflow-hidden">
+<img alt="Steam Deck OLED 1TB" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBHWMA-ZJc07NbevFKgp4FIC_hxrGH0JhnvdG3q2SysR41Bx9to726XVxgJDqheH27-S2pKJLxCiWncu0xA8NChCIpe4QFz-9t2gqTESevTrl42DLTCoHeNlOEsnCkJ90kr2TelYAI8GbGUW9Z6J6yWltqdr0KeWym9bgWR9B2pG-WhEqYJSI_z8r9xpkz_ypxrOBSGXbtooUc5My_3fGWNBDHe0eA7LfxoU-eXOI">
+</div>
+<div class="p-space-md flex flex-col justify-between flex-grow gap-space-sm bg-surface-container-lowest">
+<h3 class="text-base font-semibold text-primary tracking-tight">Steam Deck OLED 1TB</h3>
+<div class="pt-space-xs flex items-center justify-between border-t border-surface-container mt-auto">
+<div>
+<span class="font-mono-num text-[10px] text-on-surface-variant block uppercase tracking-wider">Puja actual</span>
+<span class="font-mono-num text-sm font-bold text-primary">2.890 PTS</span>
+</div>
+<button class="px-3.5 py-1.5 rounded-DEFAULT bg-surface-container hover:bg-primary hover:text-on-primary text-primary font-medium text-xs transition-colors cursor-pointer" type="button">Pujar</button>
+</div>
+</div>
+</article>
+<!-- Product Card 4: Garmin Marq Carbon -->
+<article class="catalog-slide group flex-shrink-0 w-[280px] sm:w-[320px] lg:w-[340px] flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden border border-surface-container shadow-sm hover:shadow-md transition-all duration-300" data-index="3">
+<div class="relative aspect-square bg-surface-container-high overflow-hidden">
+<img alt="Garmin Marq Carbon" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxpizMdU-Zs2k23wsSpxywLPKz1fihgjcF_29V0yi8dUB-xMLknMir-SJWG-9qtDe2nUSJatUh8cVECEUnn7Y-ZVDagg5TNYSyOxDDW2fMVqLyhMvTnoLblC8AyDn4PzRTwxNsaDCN1m3qEY4ygYUWY9oWJ7nyBWyS-ubsHmh6UghvcWXEI31ytRB2RnrDy7DOF5W9vgP5IsIrxJHKZsPyTuKRK4zg55sOIUfLJrw">
+</div>
+<div class="p-space-md flex flex-col justify-between flex-grow gap-space-sm bg-surface-container-lowest">
+<h3 class="text-base font-semibold text-primary tracking-tight">Garmin Marq Carbon</h3>
+<div class="pt-space-xs flex items-center justify-between border-t border-surface-container mt-auto">
+<div>
+<span class="font-mono-num text-[10px] text-on-surface-variant block uppercase tracking-wider">Puja actual</span>
+<span class="font-mono-num text-sm font-bold text-primary">6.100 PTS</span>
+</div>
+<button class="px-3.5 py-1.5 rounded-DEFAULT bg-surface-container hover:bg-primary hover:text-on-primary text-primary font-medium text-xs transition-colors cursor-pointer" type="button">Pujar</button>
+</div>
+</div>
+</article>
+<!-- Product Card 5: Pro-Ject Debut Carbon EVO -->
+<article class="catalog-slide group flex-shrink-0 w-[280px] sm:w-[320px] lg:w-[340px] flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden border border-surface-container shadow-sm hover:shadow-md transition-all duration-300" data-index="4">
+<div class="relative aspect-square bg-surface-container-high overflow-hidden">
+<img alt="Pro-Ject Debut Carbon EVO" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwcK29nlItaYVXSuqp8P8Gn96LN5lA8GWU7eRJzEM32QNziKa6hw_H2mo_03LDuzMlxsLMBOm8Esfzt0Mi2aIAkZzXWsy0ikkvN2HAIyzUudn9t7NKT4nc__ktiE8SuclwqVqnkti8xspF-Wn6156AAsZQiPA-s_voLqW8WFYfL2kPAQjSPJoIyYhuY-zWDyzabjPi-BLOU4u1UDlQ29Ywd4NT8XvGY7sbkL1-e0w">
+</div>
+<div class="p-space-md flex flex-col justify-between flex-grow gap-space-sm bg-surface-container-lowest">
+<h3 class="text-base font-semibold text-primary tracking-tight">Pro-Ject Debut Carbon EVO</h3>
+<div class="pt-space-xs flex items-center justify-between border-t border-surface-container mt-auto">
+<div>
+<span class="font-mono-num text-[10px] text-on-surface-variant block uppercase tracking-wider">Puja actual</span>
+<span class="font-mono-num text-sm font-bold text-primary">2.100 PTS</span>
+</div>
+<button class="px-3.5 py-1.5 rounded-DEFAULT bg-surface-container hover:bg-primary hover:text-on-primary text-primary font-medium text-xs transition-colors cursor-pointer" type="button">Pujar</button>
+</div>
+</div>
+</article>
+<!-- Product Card 6: Razer Viper Mini Signature -->
+<article class="catalog-slide group flex-shrink-0 w-[280px] sm:w-[320px] lg:w-[340px] flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden border border-surface-container shadow-sm hover:shadow-md transition-all duration-300" data-index="5">
+<div class="relative aspect-square bg-surface-container-high overflow-hidden">
+<img alt="Razer Viper Mini Signature" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDm27KqKcPCoawMqxkJ5TngygTjXqVRdMhkP0acvZ_t7vmWr6xEhLNp-yPwpZL6al92XLvGk035x__0D3KIBWJaliN8reIJHUsH2JUF635zVWw5EYWw9a966NH8Mspl13iPFZ00OHlUKyTZlfN3-VAKGDibrfJU7vONck8mGlEf-AHtOr_vG8x-iGiXJkNuBjV3DdRNN3Bpl4fl9PEK04UJmQut9ce8tTcvprDTJLQ">
+</div>
+<div class="p-space-md flex flex-col justify-between flex-grow gap-space-sm bg-surface-container-lowest">
+<h3 class="text-base font-semibold text-primary tracking-tight">Razer Viper Mini Signature</h3>
+<div class="pt-space-xs flex items-center justify-between border-t border-surface-container mt-auto">
+<div>
+<span class="font-mono-num text-[10px] text-on-surface-variant block uppercase tracking-wider">Puja actual</span>
+<span class="font-mono-num text-sm font-bold text-primary">1.750 PTS</span>
+</div>
+<button class="px-3.5 py-1.5 rounded-DEFAULT bg-surface-container hover:bg-primary hover:text-on-primary text-primary font-medium text-xs transition-colors cursor-pointer" type="button">Pujar</button>
+</div>
+</div>
+</article>
+</div>
+</div>
+<!-- Discrete Pagination Dots -->
+<div class="flex items-center justify-center gap-2 mt-space-lg" id="catalog-carousel-dots">
+<button aria-label="Ir al lote 1" class="h-1.5 w-6 rounded-full bg-primary transition-all duration-300"></button>
+<button aria-label="Ir al lote 2" class="h-1.5 w-2 rounded-full bg-[#d1d5db] hover:bg-outline transition-all duration-300"></button>
+<button aria-label="Ir al lote 3" class="h-1.5 w-2 rounded-full bg-[#d1d5db] hover:bg-outline transition-all duration-300"></button>
+<button aria-label="Ir al lote 4" class="h-1.5 w-2 rounded-full bg-[#d1d5db] hover:bg-outline transition-all duration-300"></button>
+<button aria-label="Ir al lote 5" class="h-1.5 w-2 rounded-full bg-[#d1d5db] hover:bg-outline transition-all duration-300"></button>
+<button aria-label="Ir al lote 6" class="h-1.5 w-2 rounded-full bg-[#d1d5db] hover:bg-outline transition-all duration-300"></button>
+</div>
+</section>
+<!-- Interactive Logic for Carousels & Timers -->
+<script>
+  (function() {
+    // 1. Hero Carousel Logic ("El tiempo está corriendo")
+    const heroTrack = document.getElementById('carousel-track');
+    const heroPrevBtn = document.getElementById('hero-prev-btn');
+    const heroNextBtn = document.getElementById('hero-next-btn');
+    let heroIndex = 0;
+    const heroTotal = 3;
+
+    function updateHero() {
+      if (!heroTrack) return;
+      const isDesktop = window.innerWidth >= 1024;
+      const offset = heroIndex * (isDesktop ? 50 : 100);
+      heroTrack.style.transform = `translateX(-${offset}%)`;
+    }
+
+    if (heroNextBtn) {
+      heroNextBtn.addEventListener('click', () => {
+        heroIndex = (heroIndex + 1) % heroTotal;
+        updateHero();
+      });
+    }
+
+    if (heroPrevBtn) {
+      heroPrevBtn.addEventListener('click', () => {
+        heroIndex = (heroIndex - 1 + heroTotal) % heroTotal;
+        updateHero();
+      });
+    }
+
+    // 2. Catalog Carousel Logic ("Subastas disponibles")
+    const catalogViewport = document.getElementById('catalog-viewport');
+    const catalogTrack = document.getElementById('catalog-track');
+    const catalogPrevBtn = document.getElementById('catalog-prev-btn');
+    const catalogNextBtn = document.getElementById('catalog-next-btn');
+    const catalogIndicator = document.getElementById('catalog-carousel-indicator');
+    const catalogDotsContainer = document.getElementById('catalog-carousel-dots');
+
+    if (!catalogTrack || !catalogViewport) return;
+
+    const slides = Array.from(catalogTrack.children);
+    const totalCatalogSlides = slides.length; // 6
+    let currentCatalogIndex = 0;
+    let autoplayTimer = null;
+    const AUTOPLAY_INTERVAL = 3800;
+
+    function renderCatalog() {
+      const slide = slides[currentCatalogIndex];
+      if (!slide) return;
+
+      const slideWidth = slide.offsetWidth;
+      const gap = 20; // gap-5 in px
+      const offset = currentCatalogIndex * (slideWidth + gap);
+
+      catalogTrack.style.transform = `translateX(-${offset}px)`;
+
+      // Update indicator
+      if (catalogIndicator) {
+        catalogIndicator.textContent = `0${currentCatalogIndex + 1} / 0${totalCatalogSlides}`;
+      }
+
+      // Update dots
+      if (catalogDotsContainer) {
+        const dots = catalogDotsContainer.querySelectorAll('button');
+        dots.forEach((dot, idx) => {
+          if (idx === currentCatalogIndex) {
+            dot.className = 'h-1.5 w-6 rounded-full bg-primary transition-all duration-300';
+          } else {
+            dot.className = 'h-1.5 w-2 rounded-full bg-[#d1d5db] hover:bg-outline transition-all duration-300';
+          }
+        });
+      }
+    }
+
+    function goToNext() {
+      currentCatalogIndex = (currentCatalogIndex + 1) % totalCatalogSlides;
+      renderCatalog();
+    }
+
+    function goToPrev() {
+      currentCatalogIndex = (currentCatalogIndex - 1 + totalCatalogSlides) % totalCatalogSlides;
+      renderCatalog();
+    }
+
+    function startAutoplay() {
+      stopAutoplay();
+      autoplayTimer = setInterval(goToNext, AUTOPLAY_INTERVAL);
+    }
+
+    function stopAutoplay() {
+      if (autoplayTimer) {
+        clearInterval(autoplayTimer);
+        autoplayTimer = null;
+      }
+    }
+
+    // Arrow controls
+    if (catalogNextBtn) {
+      catalogNextBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        goToNext();
+        startAutoplay();
+      });
+    }
+
+    if (catalogPrevBtn) {
+      catalogPrevBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        goToPrev();
+        startAutoplay();
+      });
+    }
+
+    // Dots click events
+    if (catalogDotsContainer) {
+      const dots = catalogDotsContainer.querySelectorAll('button');
+      dots.forEach((dot, idx) => {
+        dot.addEventListener('click', () => {
+          currentCatalogIndex = idx;
+          renderCatalog();
+          startAutoplay();
+        });
+      });
+    }
+
+    // Pause on hover, resume on leave
+    catalogViewport.addEventListener('mouseenter', stopAutoplay);
+    catalogViewport.addEventListener('mouseleave', startAutoplay);
+    if (catalogPrevBtn) catalogPrevBtn.addEventListener('mouseenter', stopAutoplay);
+    if (catalogPrevBtn) catalogPrevBtn.addEventListener('mouseleave', startAutoplay);
+    if (catalogNextBtn) catalogNextBtn.addEventListener('mouseenter', stopAutoplay);
+    if (catalogNextBtn) catalogNextBtn.addEventListener('mouseleave', startAutoplay);
+
+    // Touch swipe support
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    catalogViewport.addEventListener('touchstart', (e) => {
+      stopAutoplay();
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    catalogViewport.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      if (touchStartX - touchEndX > 50) {
+        goToNext();
+      } else if (touchEndX - touchStartX > 50) {
+        goToPrev();
+      }
+      startAutoplay();
+    }, { passive: true });
+
+    // Window resize adjustment
+    window.addEventListener('resize', renderCatalog);
+
+    // Initial start
+    renderCatalog();
+    startAutoplay();
+  })();
+</script>
+</div></main><footer class="w-full bg-surface-container-low border-t border-surface-container shadow-[0_-1px_4px_rgba(0,0,0,0.02)]"><div class="w-full px-margin-mobile md:px-margin py-space-xl flex flex-col md:flex-row items-center justify-between gap-space-md"><div class="flex flex-col sm:flex-row items-center gap-space-xs sm:gap-space-md text-center sm:text-left"><span class="font-bold text-base tracking-tight text-primary uppercase">FlashBid</span><span class="text-xs text-on-surface-variant">© 2025 FlashBid Inc. Subastas de precisión contemporáneas.</span></div><div class="flex flex-wrap items-center justify-center gap-space-md text-center"><a class="text-xs text-on-surface-variant hover:text-on-surface transition-colors" data-path="terminos-del-servicio" href="#">Términos &amp; Garantías</a></div></div></footer>
+
+
+</body></html>

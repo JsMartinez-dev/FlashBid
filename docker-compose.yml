@@ -70,8 +70,14 @@ services:
       dockerfile: Dockerfile
     container_name: cdk-dev
     volumes:
-      - ./app:/app
-    working_dir: /app
+      - ./:/workspace/project
+      # Evita bloqueos de Windows/OneDrive al renombrar archivos temporales de CDK.
+      - type: volume
+        source: cdk_build_data
+        target: /workspace/project/app/cdk.out
+        volume:
+          nocopy: true
+    working_dir: /workspace/project/app
     depends_on:
       emulador:
         condition: service_healthy
@@ -90,10 +96,121 @@ services:
       # Conexión a Redis
       REDIS_HOST: redis
       REDIS_PORT: "6379"
+      APP_ENV: local
+      JWT_SECRET: ${JWT_SECRET:-flashbid-local-development-secret}
+      JWT_ISSUER: ${JWT_ISSUER:-flashbid-local-auth}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-flashbid-web}
     # Se mantiene vivo para que puedas entrar con `docker compose exec cdk-dev bash`
     stdin_open: true
     tty: true
     command: bash
 
+  auth:
+    build:
+      context: .
+      dockerfile: auth_service/Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      emulador:
+        condition: service_healthy
+    environment:
+      AWS_ENDPOINT_URL: http://emulador:4566
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      TABLE_NAME: ${TABLE_NAME:-FlashBidTable}
+      JWT_SECRET: ${JWT_SECRET:-flashbid-local-development-secret}
+      JWT_ISSUER: ${JWT_ISSUER:-flashbid-local-auth}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-flashbid-web}
+      APP_ENV: local
+
+  seed-localstack:
+    build:
+      context: .
+      dockerfile: auth_service/Dockerfile
+    command: /workspace/.venv/bin/python -u /workspace/scripts/seed_localstack.py
+    volumes:
+      - ./scripts:/workspace/scripts:ro
+    environment:
+      AWS_ENDPOINT_URL: http://emulador:4566
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      TABLE_NAME: ${TABLE_NAME:-FlashBidTable}
+    depends_on:
+      emulador:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: auth_service/Dockerfile
+    working_dir: /workspace
+    command: /workspace/.venv/bin/python -m worker.main
+    volumes:
+      - ./app/modules:/workspace/modules
+      - ./worker:/workspace/worker
+    environment:
+      AWS_ENDPOINT_URL: http://emulador:4566
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      TABLE_NAME: ${TABLE_NAME:-FlashBidTable}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      PYTHONPATH: /workspace
+    depends_on:
+      emulador:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  websocket:
+    build:
+      context: .
+      dockerfile: auth_service/Dockerfile
+    command: /workspace/.venv/bin/uvicorn local_dev.ws_app:app --host 0.0.0.0 --port 8001
+    volumes:
+      - ./app/modules:/workspace/modules
+      - ./local_dev:/workspace/local_dev
+    ports:
+      - "8001:8001"
+    environment:
+      AWS_ENDPOINT_URL: http://emulador:4566
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      TABLE_NAME: ${TABLE_NAME:-FlashBidTable}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      APP_ENV: local
+      JWT_SECRET: ${JWT_SECRET:-flashbid-local-development-secret}
+      JWT_ISSUER: ${JWT_ISSUER:-flashbid-local-auth}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-flashbid-web}
+      PYTHONPATH: /workspace
+    depends_on:
+      emulador:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    image: node:22-alpine
+    working_dir: /workspace
+    volumes:
+      - ./frontend:/workspace
+    ports:
+      - "5173:5173"
+    depends_on:
+      auth:
+        condition: service_started
+    environment:
+      VITE_WS_BASE_URL: http://localhost:8001
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+
 volumes:
   redis_data:
+  cdk_build_data:

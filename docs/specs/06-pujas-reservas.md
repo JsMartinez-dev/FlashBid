@@ -1,12 +1,18 @@
 # Spec 06 — Pujas transaccionales, reservas e historial de ofertas
 
-**Estado:** pendiente de implementación.  
+**Estado:** completado por indicación del usuario.
 **Dependencias:** 05.  
 **Trazabilidad:** secciones 3.2, 3.3, 3.4, 5, 7, 9, 12 de la [especificación fuente](../FlashBid_MVP1_Especificacion_Tecnica.md).
 
 ## Objetivo y alcance
 
 Entregar pujas transaccionales, reservas e historial de ofertas como incremento verificable del MVP. Aplican las [reglas comunes](README.md) y las dependencias anteriores.
+
+## Reglas confirmadas para implementación
+
+- La primera puja debe **superar** el precio inicial; todas las pujas son créditos enteros positivos. La igualdad se rechaza.
+- El líder actual no puede pujar nuevamente hasta que otro usuario lo haya superado.
+- La idempotencia de cada `requestId` se conserva durante siete días desde la aceptación; su TTL es independiente del TTL de la subasta y su eliminación física puede ser posterior.
 
 ## Casos de uso
 

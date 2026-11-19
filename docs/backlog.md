@@ -1,6 +1,6 @@
 # Backlog — FlashBid MVP 1
 
-Cada fila corresponde a un caso de uso detallado en `specs/`. Todos están **Pendientes**: la existencia de código base no acredita su aceptación. Estados sugeridos: Pendiente → En curso → En validación → Hecho. Marcar Hecho solo con criterios satisfechos y evidencia enlazada. El orden sigue dependencias; toda la lista pertenece al MVP.
+Cada fila corresponde a un caso de uso detallado en `specs/`. Los specs 01–08 se registran como completados por indicación del usuario; los demás conservan su estado indicado. Estados sugeridos: Pendiente → En curso → En validación → Hecho. Marcar Hecho solo con criterios satisfechos y evidencia enlazada. El orden sigue dependencias; toda la lista pertenece al MVP.
 
 Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Índice y convenciones](specs/README.md).
 
@@ -10,10 +10,10 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 
 | Caso | Caso de uso a implementar | Estado | Evidencia |
 |---|---|---|---|
-| [CU-01-01](specs/01-entorno-local.md) | Arrancar y desplegar el entorno | Pendiente | — |
-| [CU-01-02](specs/01-entorno-local.md) | Verificar identidad y WebSocket emulados | Pendiente | — |
-| [CU-01-03](specs/01-entorno-local.md) | Consultar salud desde React | Pendiente | — |
-| [CU-01-04](specs/01-entorno-local.md) | Preparar accesos de datos | Pendiente | — |
+| [CU-01-01](specs/01-entorno-local.md) | Arrancar y desplegar el entorno | Hecho | `scripts/setup-local.sh`, `docker compose config --quiet` |
+| [CU-01-02](specs/01-entorno-local.md) | Verificar identidad y WebSocket emulados | Hecho | `docs/adr/001-local-identity-and-emulation.md` |
+| [CU-01-03](specs/01-entorno-local.md) | Consultar salud desde React | Hecho | `frontend/src/main.tsx`, `/health` |
+| [CU-01-04](specs/01-entorno-local.md) | Preparar accesos de datos | Hecho | `docs/adr/002-access-patterns-and-time.md` |
 
 ## Spec 02 — Identidad, perfil y sesión
 
@@ -21,9 +21,9 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 
 | Caso | Caso de uso a implementar | Estado | Evidencia |
 |---|---|---|---|
-| [CU-02-01](specs/02-identidad-sesion.md) | Registrar una cuenta | Pendiente | — |
-| [CU-02-02](specs/02-identidad-sesion.md) | Iniciar y cerrar sesión | Pendiente | — |
-| [CU-02-03](specs/02-identidad-sesion.md) | Autorizar acceso por identidad | Pendiente | — |
+| [CU-02-01](specs/02-identidad-sesion.md) | Registrar una cuenta | Hecho | `auth_service/main.py`, `test_identity.py` |
+| [CU-02-02](specs/02-identidad-sesion.md) | Iniciar y cerrar sesión | Hecho | `auth_service/main.py`, `frontend/src/main.tsx` |
+| [CU-02-03](specs/02-identidad-sesion.md) | Autorizar acceso por identidad | Hecho | `lambdas/users/handler.py`, `test_identity.py` |
 
 ## Spec 03 — Billetera y crédito inicial
 
@@ -31,8 +31,8 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 
 | Caso | Caso de uso a implementar | Estado | Evidencia |
 |---|---|---|---|
-| [CU-03-01](specs/03-billetera-inicial.md) | Recibir créditos iniciales una sola vez | Pendiente | — |
-| [CU-03-02](specs/03-billetera-inicial.md) | Consultar saldos y movimientos | Pendiente | — |
+| [CU-03-01](specs/03-billetera-inicial.md) | Recibir créditos iniciales una sola vez | Hecho | `wallets/repository.py`, `test_wallets.py` |
+| [CU-03-02](specs/03-billetera-inicial.md) | Consultar saldos y movimientos | Hecho | `wallet/handler.py`, `test_wallets.py` |
 
 ## Spec 04 — Publicación y cancelación de subastas
 
@@ -40,8 +40,8 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 
 | Caso | Caso de uso a implementar | Estado | Evidencia |
 |---|---|---|---|
-| [CU-04-01](specs/04-publicacion-cancelacion.md) | Publicar un producto ficticio | Pendiente | — |
-| [CU-04-02](specs/04-publicacion-cancelacion.md) | Cancelar antes de la primera puja | Pendiente | — |
+| [CU-04-01](specs/04-publicacion-cancelacion.md) | Publicar un producto ficticio | Hecho | `auctions/repository.py`, `test_auctions.py` |
+| [CU-04-02](specs/04-publicacion-cancelacion.md) | Cancelar antes de la primera puja | Hecho | `auctions/repository.py`, `test_auctions.py` |
 
 ## Spec 05 — Catálogo, detalle y expiración sin pujas
 
@@ -49,9 +49,9 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 
 | Caso | Caso de uso a implementar | Estado | Evidencia |
 |---|---|---|---|
-| [CU-05-01](specs/05-catalogo-detalle-cache.md) | Explorar subastas activas | Pendiente | — |
-| [CU-05-02](specs/05-catalogo-detalle-cache.md) | Consultar detalle con Cache-Aside | Pendiente | — |
-| [CU-05-03](specs/05-catalogo-detalle-cache.md) | Ocultar publicación vencida sin ofertas | Pendiente | — |
+| [CU-05-01](specs/05-catalogo-detalle-cache.md) | Explorar subastas activas | Hecho | Validación informada por el usuario |
+| [CU-05-02](specs/05-catalogo-detalle-cache.md) | Consultar detalle con Cache-Aside | Hecho | Validación informada por el usuario |
+| [CU-05-03](specs/05-catalogo-detalle-cache.md) | Ocultar publicación vencida sin ofertas | Hecho | Validación informada por el usuario |
 
 ## Spec 06 — Pujas transaccionales, reservas e historial de ofertas
 
@@ -59,10 +59,10 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 
 | Caso | Caso de uso a implementar | Estado | Evidencia |
 |---|---|---|---|
-| [CU-06-01](specs/06-pujas-reservas.md) | Realizar la primera puja | Pendiente | — |
-| [CU-06-02](specs/06-pujas-reservas.md) | Superar al líder | Pendiente | — |
-| [CU-06-03](specs/06-pujas-reservas.md) | Reintentar una puja sin duplicarla | Pendiente | — |
-| [CU-06-04](specs/06-pujas-reservas.md) | Consultar historial y gestionar errores de puja | Pendiente | — |
+| [CU-06-01](specs/06-pujas-reservas.md) | Realizar la primera puja | Hecho | Completado por indicación del usuario |
+| [CU-06-02](specs/06-pujas-reservas.md) | Superar al líder | Hecho | Completado por indicación del usuario |
+| [CU-06-03](specs/06-pujas-reservas.md) | Reintentar una puja sin duplicarla | Hecho | Completado por indicación del usuario |
+| [CU-06-04](specs/06-pujas-reservas.md) | Consultar historial y gestionar errores de puja | Hecho | Completado por indicación del usuario |
 
 ## Spec 07 — Cierre automático, ganador y liquidación
 
@@ -70,9 +70,9 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 
 | Caso | Caso de uso a implementar | Estado | Evidencia |
 |---|---|---|---|
-| [CU-07-01](specs/07-cierre-liquidacion.md) | Detectar vencimientos y cerrar | Pendiente | — |
-| [CU-07-02](specs/07-cierre-liquidacion.md) | Liquidar una única vez | Pendiente | — |
-| [CU-07-03](specs/07-cierre-liquidacion.md) | Recuperar vencimientos tras fallos | Pendiente | — |
+| [CU-07-01](specs/07-cierre-liquidacion.md) | Detectar vencimientos y cerrar | Hecho | Completado por indicación del usuario |
+| [CU-07-02](specs/07-cierre-liquidacion.md) | Liquidar una única vez | Hecho | Completado por indicación del usuario |
+| [CU-07-03](specs/07-cierre-liquidacion.md) | Recuperar vencimientos tras fallos | Hecho | Completado por indicación del usuario |
 
 ## Spec 08 — Actualizaciones WebSocket y reconexión
 
@@ -80,9 +80,9 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 
 | Caso | Caso de uso a implementar | Estado | Evidencia |
 |---|---|---|---|
-| [CU-08-01](specs/08-tiempo-real.md) | Suscribirse a una subasta | Pendiente | — |
-| [CU-08-02](specs/08-tiempo-real.md) | Recibir pujas, cancelaciones y cierres | Pendiente | — |
-| [CU-08-03](specs/08-tiempo-real.md) | Reconectar y recuperar estado | Pendiente | — |
+| [CU-08-01](specs/08-tiempo-real.md) | Suscribirse a una subasta | Hecho | Completado por indicación del usuario |
+| [CU-08-02](specs/08-tiempo-real.md) | Recibir pujas, cancelaciones y cierres | Hecho | Completado por indicación del usuario |
+| [CU-08-03](specs/08-tiempo-real.md) | Reconectar y recuperar estado | Hecho | Completado por indicación del usuario |
 
 ## Spec 09 — Mis subastas, mis pujas y victorias
 
@@ -90,9 +90,9 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 
 | Caso | Caso de uso a implementar | Estado | Evidencia |
 |---|---|---|---|
-| [CU-09-01](specs/09-actividad-personal.md) | Consultar mis publicaciones | Pendiente | — |
-| [CU-09-02](specs/09-actividad-personal.md) | Consultar mis pujas | Pendiente | — |
-| [CU-09-03](specs/09-actividad-personal.md) | Consultar mis victorias | Pendiente | — |
+| [CU-09-01](specs/09-actividad-personal.md) | Consultar mis publicaciones | En validación | Implementación; pruebas de repositorio y compilación frontend |
+| [CU-09-02](specs/09-actividad-personal.md) | Consultar mis pujas | En validación | Implementación; pruebas de repositorio y compilación frontend |
+| [CU-09-03](specs/09-actividad-personal.md) | Consultar mis victorias | En validación | Implementación; pruebas de repositorio y compilación frontend |
 
 ## Spec 10 — Demo reproducible, validación y documentación
 
@@ -103,3 +103,15 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 | [CU-10-01](specs/10-demo-validacion-entrega.md) | Preparar y repetir una demo | Pendiente | — |
 | [CU-10-02](specs/10-demo-validacion-entrega.md) | Verificar integridad y recuperación | Pendiente | — |
 | [CU-10-03](specs/10-demo-validacion-entrega.md) | Entregar y operar el MVP | Pendiente | — |
+
+# Evidencia de implementación
+
+## Specs 01 y 02
+
+- Rama: `dev`.
+- Comandos verificados: `uv run pytest -q`, `cd frontend && npm run build` y `cd app && npx aws-cdk synth`.
+- Resultado: 35 pruebas unitarias aprobadas; frontend y síntesis CDK aprobados.
+
+**Registro de estado:** el usuario indicó completar los specs 01–05 y comunicó que validó el spec 05. No se adjuntaron resultados de pruebas a este registro.
+
+**Actualización:** el usuario confirmó el spec 08 y solicitó marcar los specs 01–08 como realizados. No se adjuntaron evidencias detalladas de validación.
