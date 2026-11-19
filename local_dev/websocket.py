@@ -50,7 +50,7 @@ async def auction_socket(websocket: WebSocket, auction_id: str):
     tasks = []
     try:
         await pubsub.subscribe(f"events:auction:{auction_id}")
-        await websocket.send_json({"type": "subscribed", "auctionId": auction_id})
+        await websocket.send_json({"type": "subscribed", "auctionId": auction_id})  
 
         async def forward():
             while True:
@@ -59,7 +59,7 @@ async def auction_socket(websocket: WebSocket, auction_id: str):
                     try:
                         event = json.loads(message["data"])
                         if event.get("auctionId") == auction_id:
-                            await websocket.send_json(event)
+                            await websocket.send_json(event) #Le enviamos la actualizacion a todoso los navegadores conectados a esa subasta    
                     except (ValueError, TypeError, AttributeError):
                         continue
                 await asyncio.sleep(0.01)

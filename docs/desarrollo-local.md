@@ -41,3 +41,14 @@ El Compose local incluye un servicio `worker`. Después de actualizar el Compose
 ## WebSocket del detalle
 
 El backend local ofrece `ws://localhost:8000/ws/auctions/{id}`. Al abrir un detalle se autentica con la primera trama y se suscribe a eventos a través de Redis; si falla el canal, el cliente avisa y consulta el estado por HTTP. La implementación requiere probarse con dos sesiones y desconexiones. Para el Compose de LocalStack se configura un gateway local independiente en el puerto 8001; no sustituye la validación serverless pendiente.
+
+## Subastas de muestra para la interfaz
+
+Con el Compose local encendido y el backend recreado después de agregar el montaje de scripts:
+
+```powershell
+docker compose -f docker-compose.local.yml up -d backend
+docker compose -f docker-compose.local.yml exec -T backend /workspace/.venv/bin/python /workspace/scripts/cargar_subastas_visuales.py
+```
+
+El script agrega nueve publicaciones de muestra con las imágenes referenciadas por Stitch. Vencen 20 horas después de insertarse si nadie puja; al recibir una oferta se aplica el vencimiento normal de 20 segundos. Usa un vendedor reservado sin credenciales, no modifica saldos ni sobrescribe publicaciones existentes y puede ejecutarse de nuevo. Si una publicación anterior ya venció pero aún existe, se omite hasta que TTL la elimine; no se renueva automáticamente. Las imágenes son URLs remotas y dependen de su disponibilidad.

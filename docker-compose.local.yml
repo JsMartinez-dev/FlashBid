@@ -33,6 +33,7 @@ services:
       - ./auth_service:/workspace/auth_service
       - ./app/modules:/workspace/modules
       - ./local_dev:/workspace/local_dev
+      - ./scripts:/workspace/scripts:ro
     ports:
       - "8000:8000"
     environment:
