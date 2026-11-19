@@ -71,6 +71,12 @@ services:
     container_name: cdk-dev
     volumes:
       - ./:/workspace/project
+      # Evita bloqueos de Windows/OneDrive al renombrar archivos temporales de CDK.
+      - type: volume
+        source: cdk_build_data
+        target: /workspace/project/app/cdk.out
+        volume:
+          nocopy: true
     working_dir: /workspace/project/app
     depends_on:
       emulador:
@@ -118,6 +124,24 @@ services:
       JWT_ISSUER: ${JWT_ISSUER:-flashbid-local-auth}
       JWT_AUDIENCE: ${JWT_AUDIENCE:-flashbid-web}
       APP_ENV: local
+
+  seed-localstack:
+    build:
+      context: .
+      dockerfile: auth_service/Dockerfile
+    command: /workspace/.venv/bin/python -u /workspace/scripts/seed_localstack.py
+    volumes:
+      - ./scripts:/workspace/scripts:ro
+    environment:
+      AWS_ENDPOINT_URL: http://emulador:4566
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      TABLE_NAME: ${TABLE_NAME:-FlashBidTable}
+    depends_on:
+      emulador:
+        condition: service_healthy
+    restart: unless-stopped
 
   worker:
     build:
@@ -189,3 +213,4 @@ services:
 
 volumes:
   redis_data:
+  cdk_build_data:

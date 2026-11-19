@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FlashBid — documentación de la API</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
+  <style>
+    body { margin: 0; background: #fafaf7; font-family: Arial, sans-serif; }
+    .config { padding: 18px 24px; background: #202321; color: white; }
+    .config label { display: block; margin-bottom: 8px; font-weight: 600; }
+    .config input { width: min(700px, 100%); box-sizing: border-box; padding: 10px; }
+    .config button { padding: 10px 16px; margin: 6px 0; cursor: pointer; }
+    .config p { font-size: 14px; line-height: 1.5; margin-bottom: 0; }
+  </style>
+</head>
+<body>
+  <div class="config">
+    <label for="api-url">URL de API Gateway de LocalStack</label>
+    <input id="api-url" type="url" placeholder="https://ID.execute-api.localhost.localstack.cloud:4566/prod/" />
+    <button id="apply" type="button">Aplicar URL</button>
+    <p>Copia la salida <strong>FlashBid.ApiUrl</strong> del despliegue CDK. Para las rutas protegidas, inicia sesión y pega el <strong>accessToken</strong> en «Authorize». La identidad utiliza localhost:8000.</p>
+    <p id="config-status" role="status"></p>
+  </div>
+  <div id="swagger-ui"></div>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script>
+    const input = document.getElementById('api-url');
+    const status = document.getElementById('config-status');
+    input.value = localStorage.getItem('flashbid.swaggerApiUrl') || '';
+
+    const authServer = [{ url: 'http://localhost:8000', description: 'Servicio de identidad' }];
+    const bearer = [{ BearerAuth: [] }];
+    const parameter = (name, location, required, schema, description) => ({ name, in: location, required, schema, description });
+    const pagination = [parameter('limit', 'query', false, { type: 'integer', minimum: 1, maximum: 50, default: 20 }, 'Número máximo de resultados'), parameter('cursor', 'query', false, { type: 'string' }, 'Cursor devuelto por la página anterior')];
+    const auctionId = parameter('id', 'path', true, { type: 'string' }, 'Identificador de la subasta');
+    const body = (schema) => ({ required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/' + schema } } } });
+    const responses = (success = '200') => ({ [success]: { description: 'Solicitud procesada' }, '400': { description: 'Solicitud o paginación inválida' }, '401': { description: 'Sesión inválida o vencida' }, '403': { description: 'Operación no permitida' }, '404': { description: 'Recurso no encontrado' }, '409': { description: 'Conflicto con el estado actual' }, '422': { description: 'Datos inválidos' } });
+    const operation = (tag, summary, options = {}) => ({ tags: [tag], summary, security: bearer, responses: responses(options.status), ...options });
+
+    function render(apiUrl) {
+      const spec = {
+        openapi: '3.0.3',
+        info: { title: 'FlashBid — API local', version: '1.0.0', description: 'Documentación para el entorno LocalStack. Inicia sesión en Identidad y utiliza el accessToken para las rutas protegidas. El WebSocket no es un endpoint HTTP y no se prueba desde Swagger.' },
+        servers: [{ url: apiUrl || 'http://localhost:4566', description: 'API Gateway de LocalStack; configura la URL arriba' }],
+        components: { securitySchemes: { BearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' } }, schemas: {
+          Login: { type: 'object', required: ['email', 'password'], properties: { email: { type: 'string', format: 'email', example: 'usuario@ejemplo.com' }, password: { type: 'string', format: 'password', minLength: 8 } } },
+          Register: { type: 'object', required: ['email', 'password', 'display_name'], properties: { email: { type: 'string', format: 'email', example: 'usuario@ejemplo.com' }, password: { type: 'string', format: 'password', minLength: 8 }, display_name: { type: 'string', minLength: 2, example: 'Usuario' } } },
+          Auction: { type: 'object', required: ['title', 'description', 'category', 'imageUrl', 'initialPrice'], properties: { title: { type: 'string', example: 'Cámara vintage' }, description: { type: 'string', example: 'Cámara en buen estado' }, category: { type: 'string', example: 'Fotografía' }, imageUrl: { type: 'string', format: 'uri', example: 'https://ejemplo.com/camara.jpg' }, initialPrice: { type: 'integer', minimum: 1, example: 500 } } },
+          Bid: { type: 'object', required: ['amount', 'requestId'], properties: { amount: { type: 'integer', minimum: 1, example: 600 }, requestId: { type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000', description: 'UUID único para la operación; reutilízalo solo para reintentar la misma puja.' } } }
+        } },
+        paths: {
+          '/auth/register': { post: operation('Identidad', 'Crear una cuenta', { servers: authServer, security: [], requestBody: body('Register'), responses: responses('201') }) },
+          '/auth/login': { post: operation('Identidad', 'Iniciar sesión', { servers: authServer, security: [], requestBody: body('Login') }) },
+          '/health': { get: operation('Salud', 'Comprobar DynamoDB y Redis', { security: [] }) },
+          '/me': { get: operation('Perfil y billetera', 'Consultar perfil y billetera') },
+          '/me/wallet/movements': { get: operation('Perfil y billetera', 'Consultar movimientos', { parameters: pagination }) },
+          '/me/wins': { get: operation('Mi actividad', 'Consultar subastas ganadas', { parameters: pagination }) },
+          '/me/auctions': { get: operation('Mi actividad', 'Consultar mis subastas', { parameters: pagination }) },
+          '/me/bids': { get: operation('Mi actividad', 'Consultar mis pujas', { parameters: pagination }) },
+          '/auctions': { get: operation('Subastas', 'Consultar catálogo activo', { parameters: pagination }), post: operation('Subastas', 'Publicar una subasta', { requestBody: body('Auction'), responses: responses('201') }) },
+          '/auctions/{id}': { get: operation('Subastas', 'Consultar detalle y resultado', { parameters: [auctionId] }), delete: operation('Subastas', 'Cancelar una subasta propia sin pujas', { parameters: [auctionId] }) },
+          '/auctions/{id}/bids': { get: operation('Pujas', 'Consultar historial de pujas', { parameters: [auctionId, ...pagination] }), post: operation('Pujas', 'Realizar una puja', { parameters: [auctionId], requestBody: body('Bid'), responses: responses('201') }) }
+        }
+      };
+      SwaggerUIBundle({ spec, dom_id: '#swagger-ui', deepLinking: true, persistAuthorization: true });
+    }
+
+    document.getElementById('apply').addEventListener('click', () => {
+      try {
+        const url = new URL(input.value.trim());
+        if (!['http:', 'https:'].includes(url.protocol) || !(url.hostname === 'localhost' || url.hostname.endsWith('.localhost.localstack.cloud'))) throw new Error();
+        const value = url.href.replace(/\/$/, '');
+        localStorage.setItem('flashbid.swaggerApiUrl', value);
+        status.textContent = 'URL aplicada. Las rutas de identidad seguirán usando localhost:8000.';
+        render(value);
+      } catch { status.textContent = 'Introduce la URL completa de API Gateway de LocalStack, incluido /prod/.'; }
+    });
+    render(input.value);
+  </script>
+</body>
+</html>

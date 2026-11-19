@@ -1,61 +1,159 @@
+<p align="center">
+  <img src="frontend/public/Logo%20FlashBid%20con%20Pujas%20Ascendentes.png" alt="Logo de FlashBid" width="380" />
+</p>
+
 # FlashBid
 
-Marketplace académico de subastas virtuales. DynamoDB es la fuente de verdad, Redis acelera lecturas y el entorno local usa LocalStack, CDK, FastAPI y React.
+FlashBid es una aplicación académica de subastas en línea con créditos virtuales. Permite publicar artículos, explorar subastas, hacer pujas y seguir su evolución en tiempo real. La aplicación reserva los créditos del participante que lidera, libera la reserva cuando otro usuario lo supera y liquida la subasta al finalizar.
 
-## Estado actual
+Cada usuario puede consultar su perfil, billetera, movimientos, publicaciones, pujas y subastas ganadas. DynamoDB almacena las operaciones; Redis se utiliza para la caché del detalle, los vencimientos y los eventos en tiempo real.
 
-Los specs 01 a 04 están implementados y en validación integrada:
+## Tecnologías
 
-- Entorno Docker reproducible para LocalStack, Redis, CDK, el adaptador FastAPI de identidad y React.
-- Tabla única `FlashBidTable`, TTL y los GSI previstos para catálogo, vendedor, vencimientos y pujas propias.
-- Registro, inicio y cierre de sesión con JWT local; perfil persistido en DynamoDB y `GET /me` protegido.
-- Pantalla React con salud, registro, inicio de sesión, perfil y cierre de sesión.
-- Health check integrado para DynamoDB y Redis.
-
-- Billetera inicial de 10.000 créditos e historial paginado de movimientos.
-- Publicación de productos ficticios de 120 segundos y cancelación condicionada antes de la primera puja.
-
-El adaptador local de identidad sustituye Cognito durante los primeros incrementos. La razón y el contrato están en [ADR 001](docs/adr/001-local-identity-and-emulation.md). WebSocket se implementará en el spec 08.
+| Tecnología | Uso en FlashBid |
+|---|---|
+| <img src="https://cdn.simpleicons.org/react/61DAFB" width="20" alt="" /> **React** y <img src="https://cdn.simpleicons.org/typescript/3178C6" width="20" alt="" /> **TypeScript** | Interfaz web y lógica del cliente. |
+| <img src="https://cdn.simpleicons.org/vite/646CFF" width="20" alt="" /> **Vite** | Servidor y compilación del frontend. |
+| <img src="https://cdn.simpleicons.org/python/3776AB" width="20" alt="" /> **Python** y <img src="https://cdn.simpleicons.org/fastapi/009688" width="20" alt="" /> **FastAPI** | API de desarrollo local y servicio de autenticación. |
+| <img src="https://cdn.simpleicons.org/amazondynamodb/4053D6" width="20" alt="" /> **Amazon DynamoDB** | Tabla única para usuarios, subastas, pujas y movimientos. En desarrollo se usa DynamoDB Local o LocalStack. |
+| <img src="https://cdn.simpleicons.org/redis/FF4438" width="20" alt="" /> **Redis** | Caché, Pub/Sub y seguimiento de vencimientos. |
+| <img src="https://cdn.simpleicons.org/awslambda/FF9900" width="20" alt="" /> **AWS Lambda** y <img src="https://cdn.simpleicons.org/amazonapigateway/FF4F8B" width="20" alt="" /> **API Gateway** | Adaptadores y rutas HTTP de la arquitectura serverless emulada. |
+| <img src="https://cdn.simpleicons.org/amazonwebservices/FF9900" width="20" alt="" /> **AWS CDK** | Definición de infraestructura y despliegue. |
+| <img src="https://cdn.simpleicons.org/localstack/151515" width="20" alt="" /> **LocalStack** | Emulación de servicios de AWS. |
+| <img src="https://cdn.simpleicons.org/docker/2496ED" width="20" alt="" /> **Docker Compose** | Ejecución de los entornos de desarrollo. |
 
 ## Requisitos
 
-- Docker Engine con Docker Compose.
-- `uv` para pruebas locales.
-- Node.js 22 o superior solo si se ejecuta el frontend fuera de Docker.
+- Docker Desktop con Docker Compose y el motor de Docker en ejecución.
+- Puertos **5173** y **8000** disponibles para ambos entornos. DynamoDB Local usa además **8002** y **6380**; LocalStack usa **4566**, **6379** y **8001**.
+- PowerShell para los ejemplos. No hace falta instalar Python o Node.js en el equipo para usar los Compose.
+- Internet para descargar imágenes y dependencias durante la primera construcción.
 
-## Inicio local
+Ejecuta los comandos desde la carpeta que contiene `docker-compose.yml` y `docker-compose.local.yml`.
 
-1. Copia `.env.example` a `.env` y cambia `JWT_SECRET` por un secreto largo y único si compartes el entorno.
-2. Ejecuta `./scripts/setup-local.sh`.
-3. Abre `http://localhost:5173`.
+## Opción 1: desarrollo con DynamoDB Local
 
-El script espera los healthchecks, ejecuta `cdklocal bootstrap` y `deploy`, genera `frontend/.env.local` con el endpoint dinámico de API Gateway y luego inicia FastAPI y React. Se puede repetir sin duplicar recursos.
+Este entorno inicia React, una API FastAPI con recarga de código, DynamoDB Local, Redis y el worker de cierre. El WebSocket forma parte de FastAPI. No requiere desplegar CDK.
 
-Dentro del contenedor de desarrollo también funcionan los comandos directos `cdklocal synth` y `cdklocal deploy`; comparten el mismo proyecto `uv` que la ejecución local.
+1. Si el entorno de LocalStack está activo, detenlo para liberar los puertos:
 
-Servicios locales:
+   ```powershell
+   docker compose down
+   ```
 
-- React: `http://localhost:5173`
-- Identidad FastAPI y documentación OpenAPI: `http://localhost:8000/docs`
-- LocalStack: `http://localhost:4566`
-- Redis: `localhost:6379`
+2. Construye e inicia los servicios:
 
-Para detener el entorno usa `docker compose down`. Para borrar voluntariamente sus datos locales usa `docker compose down -v` y elimina `emulador-data/`.
+   ```powershell
+   docker compose -f docker-compose.local.yml up -d --build
+   ```
 
-## Desarrollo y verificación
+3. Comprueba que la API terminó de iniciar:
 
-```bash
-uv sync --all-groups
-uv run pytest -q
-cd frontend && npm install && npm run build
-cd app && npx aws-cdk synth
+   ```powershell
+   docker compose -f docker-compose.local.yml logs -f backend
+   ```
+
+   La salida debe incluir `Local table ready: FlashBidTable` y `Application startup complete`. Presiona `Ctrl+C` para dejar de ver los logs; los contenedores seguirán ejecutándose.
+
+4. Abre el [frontend](http://localhost:5173) o el [Swagger de la API local](http://localhost:8000/docs).
+
+La tabla se crea automáticamente al iniciar el backend si todavía no existe. Para agregar las subastas visuales de prueba:
+
+```powershell
+docker compose -f docker-compose.local.yml exec -T backend /workspace/.venv/bin/python /workspace/scripts/cargar_subastas_visuales.py
 ```
 
-Las pruebas unitarias no requieren Docker: usan Moto para DynamoDB y fakeredis para Redis. El gestor de paquetes Python del proyecto es `uv`; los archivos `app/requirements.txt` y `app/layers/dependencias/requirements.txt` permanecen para el empaquetado de Lambdas.
+El script crea subastas con 20 horas de vigencia inicial y no sobrescribe las existentes. Al recibir una puja se aplican las reglas de vencimiento del proyecto.
 
-## Seguridad y contratos
+Para detener el entorno conservando sus volúmenes:
 
-Las rutas protegidas reciben `Authorization: Bearer <token>`. El backend valida firma, emisor, audiencia y expiración; no acepta un `userId` indicado por el cliente. El secreto JWT se pasa al despliegue como parámetro CloudFormation `NoEcho`, no se guarda en la plantilla. Los errores no revelan hash de contraseña, saldos ni tokens.
+```powershell
+docker compose -f docker-compose.local.yml down
+```
 
-Las decisiones de claves, TTL, índices, consultas y restricciones contra `Scan` están en [patrones de acceso](docs/data/01_patrones_acceso.md) y [ADR 002](docs/adr/002-access-patterns-and-time.md).
+## Opción 2: LocalStack, API Gateway y Lambdas
 
+Este entorno ejecuta API Gateway, DynamoDB y Lambdas en LocalStack. Autenticación, worker y WebSocket permanecen como servicios Docker independientes; Redis se comparte con ellos.
+
+1. Detén primero el entorno de DynamoDB Local si está activo:
+
+   ```powershell
+   docker compose -f docker-compose.local.yml down
+   ```
+
+2. Construye e inicia los contenedores:
+
+   ```powershell
+   docker compose up -d --build
+   ```
+
+3. Inicializa los recursos de CDK en LocalStack:
+
+   ```powershell
+   docker compose exec cdk-dev cdklocal bootstrap
+   ```
+
+   El bootstrap se necesita la primera vez y cuando LocalStack pierde su estado. El aviso de que `cdklocal` está descontinuado no impide continuar con la herramienta instalada en este proyecto.
+
+4. Despliega la infraestructura y las Lambdas:
+
+   ```powershell
+   docker compose exec cdk-dev cdklocal deploy --app "python infra/app.py" --parameters "JwtSecret=flashbid-local-development-secret"
+   ```
+
+   Si CDK solicita aprobación, escribe `y`. El empaquetado puede tardar varios minutos. Los archivos temporales de CDK se guardan en el volumen Docker `cdk_build_data` para evitar bloqueos en carpetas compartidas con Windows. Si configuraste `JWT_SECRET` en el archivo `.env` de Compose, usa ese mismo valor como parámetro `JwtSecret`; autenticación, WebSocket y Lambdas deben compartir secreto, emisor y audiencia.
+
+5. Copia la salida `FlashBid.ApiUrl`. Crea o actualiza `frontend/.env.local` con esa URL, por ejemplo:
+
+   ```dotenv
+   VITE_API_BASE_URL=https://ID.execute-api.localhost.localstack.cloud:4566/prod/
+   VITE_AUTH_BASE_URL=http://localhost:8000
+   ```
+
+   Sustituye la URL de ejemplo por la salida real. Si el archivo contiene `FLASHBID_API_PROXY_TARGET` o una URL de un despliegue anterior, revisa o elimina esa configuración para evitar apuntar a una API antigua. No subas secretos al repositorio.
+
+6. Reinicia el frontend para aplicar la configuración:
+
+   ```powershell
+   docker compose restart frontend
+   ```
+
+7. Abre el [frontend](http://localhost:5173). El servicio `seed-localstack` espera a que CDK cree la tabla y carga las subastas de muestra sin sobrescribir las existentes. Comprueba el resultado con:
+
+   ```powershell
+   docker compose logs --tail 30 seed-localstack
+   ```
+
+Para detener este entorno:
+
+```powershell
+docker compose down
+```
+
+El proyecto monta `emulador-data` para LocalStack y un volumen para Redis. La disponibilidad del estado de LocalStack al reiniciar depende de su configuración y edición; comprueba la tabla y repite bootstrap y deploy si el emulador perdió sus recursos.
+
+## Probar los endpoints
+
+En DynamoDB Local, [http://localhost:8000/docs](http://localhost:8000/docs) documenta toda la API de FastAPI.
+
+En LocalStack, [http://localhost:8000/docs](http://localhost:8000/docs) documenta únicamente autenticación. Para probar también las Lambdas, abre [http://localhost:5173/api-docs.html](http://localhost:5173/api-docs.html), pega `FlashBid.ApiUrl` y pulsa **Aplicar URL**. Inicia sesión con `POST /auth/login`, copia `session.accessToken` y pégalo en **Authorize**. Swagger necesita internet para cargar sus recursos. El WebSocket no se prueba desde Swagger.
+
+Las rutas protegidas reciben `Authorization: Bearer <token>`. En una puja nueva usa un UUID distinto como `requestId`; reutilízalo únicamente para reintentar la misma solicitud.
+
+## Estructura y documentación
+
+- [app/modules](app/modules): servicios y repositorios compartidos por los adaptadores.
+- [local_dev](local_dev): API y WebSocket del entorno local.
+- [app/lambdas](app/lambdas) y [app/infra](app/infra): handlers Lambda e infraestructura CDK.
+- [worker](worker): cierre y liquidación de subastas.
+- [frontend](frontend): interfaz React.
+- [Documento de diseño](entregable/entregables.md): patrones de acceso, tabla única, Lambdas y caché.
+- [Especificaciones](docs/specs/README.md) y [patrones de acceso](docs/data/01_patrones_acceso.md): alcance funcional y diseño de datos.
+
+Para compilar el frontend fuera de Docker, con Node.js instalado:
+
+```powershell
+cd frontend
+npm install
+npm run build
+```
