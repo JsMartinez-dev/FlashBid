@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => {
         "/api": {
           target,
           changeOrigin: true,
+          ws: true,
           rewrite: (path) => path.replace(/^\/api(?=\/|$)/, ""),
           configure: (proxy) => {
             proxy.on("proxyReq", (proxyReq) => proxyReq.removeHeader("origin"));

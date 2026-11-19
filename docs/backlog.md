@@ -1,6 +1,6 @@
 # Backlog — FlashBid MVP 1
 
-Cada fila corresponde a un caso de uso detallado en `specs/`. Los specs 01–05 se registran como completados por indicación del usuario; los demás conservan su estado indicado. Estados sugeridos: Pendiente → En curso → En validación → Hecho. Marcar Hecho solo con criterios satisfechos y evidencia enlazada. El orden sigue dependencias; toda la lista pertenece al MVP.
+Cada fila corresponde a un caso de uso detallado en `specs/`. Los specs 01–08 se registran como completados por indicación del usuario; los demás conservan su estado indicado. Estados sugeridos: Pendiente → En curso → En validación → Hecho. Marcar Hecho solo con criterios satisfechos y evidencia enlazada. El orden sigue dependencias; toda la lista pertenece al MVP.
 
 Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Índice y convenciones](specs/README.md).
 
@@ -59,10 +59,10 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 
 | Caso | Caso de uso a implementar | Estado | Evidencia |
 |---|---|---|---|
-| [CU-06-01](specs/06-pujas-reservas.md) | Realizar la primera puja | Pendiente | — |
-| [CU-06-02](specs/06-pujas-reservas.md) | Superar al líder | Pendiente | — |
-| [CU-06-03](specs/06-pujas-reservas.md) | Reintentar una puja sin duplicarla | Pendiente | — |
-| [CU-06-04](specs/06-pujas-reservas.md) | Consultar historial y gestionar errores de puja | Pendiente | — |
+| [CU-06-01](specs/06-pujas-reservas.md) | Realizar la primera puja | Hecho | Completado por indicación del usuario |
+| [CU-06-02](specs/06-pujas-reservas.md) | Superar al líder | Hecho | Completado por indicación del usuario |
+| [CU-06-03](specs/06-pujas-reservas.md) | Reintentar una puja sin duplicarla | Hecho | Completado por indicación del usuario |
+| [CU-06-04](specs/06-pujas-reservas.md) | Consultar historial y gestionar errores de puja | Hecho | Completado por indicación del usuario |
 
 ## Spec 07 — Cierre automático, ganador y liquidación
 
@@ -70,9 +70,9 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 
 | Caso | Caso de uso a implementar | Estado | Evidencia |
 |---|---|---|---|
-| [CU-07-01](specs/07-cierre-liquidacion.md) | Detectar vencimientos y cerrar | En validación | Implementación y pruebas unitarias; integración local y LocalStack pendientes |
-| [CU-07-02](specs/07-cierre-liquidacion.md) | Liquidar una única vez | En validación | Implementación y pruebas unitarias; integración local y LocalStack pendientes |
-| [CU-07-03](specs/07-cierre-liquidacion.md) | Recuperar vencimientos tras fallos | En validación | Implementación y pruebas unitarias; integración local y LocalStack pendientes |
+| [CU-07-01](specs/07-cierre-liquidacion.md) | Detectar vencimientos y cerrar | Hecho | Completado por indicación del usuario |
+| [CU-07-02](specs/07-cierre-liquidacion.md) | Liquidar una única vez | Hecho | Completado por indicación del usuario |
+| [CU-07-03](specs/07-cierre-liquidacion.md) | Recuperar vencimientos tras fallos | Hecho | Completado por indicación del usuario |
 
 ## Spec 08 — Actualizaciones WebSocket y reconexión
 
@@ -80,9 +80,9 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 
 | Caso | Caso de uso a implementar | Estado | Evidencia |
 |---|---|---|---|
-| [CU-08-01](specs/08-tiempo-real.md) | Suscribirse a una subasta | Pendiente | — |
-| [CU-08-02](specs/08-tiempo-real.md) | Recibir pujas, cancelaciones y cierres | Pendiente | — |
-| [CU-08-03](specs/08-tiempo-real.md) | Reconectar y recuperar estado | Pendiente | — |
+| [CU-08-01](specs/08-tiempo-real.md) | Suscribirse a una subasta | Hecho | Completado por indicación del usuario |
+| [CU-08-02](specs/08-tiempo-real.md) | Recibir pujas, cancelaciones y cierres | Hecho | Completado por indicación del usuario |
+| [CU-08-03](specs/08-tiempo-real.md) | Reconectar y recuperar estado | Hecho | Completado por indicación del usuario |
 
 ## Spec 09 — Mis subastas, mis pujas y victorias
 
@@ -90,9 +90,9 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 
 | Caso | Caso de uso a implementar | Estado | Evidencia |
 |---|---|---|---|
-| [CU-09-01](specs/09-actividad-personal.md) | Consultar mis publicaciones | Pendiente | — |
-| [CU-09-02](specs/09-actividad-personal.md) | Consultar mis pujas | Pendiente | — |
-| [CU-09-03](specs/09-actividad-personal.md) | Consultar mis victorias | Pendiente | — |
+| [CU-09-01](specs/09-actividad-personal.md) | Consultar mis publicaciones | En validación | Implementación; pruebas de repositorio y compilación frontend |
+| [CU-09-02](specs/09-actividad-personal.md) | Consultar mis pujas | En validación | Implementación; pruebas de repositorio y compilación frontend |
+| [CU-09-03](specs/09-actividad-personal.md) | Consultar mis victorias | En validación | Implementación; pruebas de repositorio y compilación frontend |
 
 ## Spec 10 — Demo reproducible, validación y documentación
 
@@ -113,3 +113,5 @@ Fuente: [especificación original](FlashBid_MVP1_Especificacion_Tecnica.md). [Í
 - Resultado: 35 pruebas unitarias aprobadas; frontend y síntesis CDK aprobados.
 
 **Registro de estado:** el usuario indicó completar los specs 01–05 y comunicó que validó el spec 05. No se adjuntaron resultados de pruebas a este registro.
+
+**Actualización:** el usuario confirmó el spec 08 y solicitó marcar los specs 01–08 como realizados. No se adjuntaron evidencias detalladas de validación.

@@ -1,6 +1,6 @@
 # Spec 06 — Pujas transaccionales, reservas e historial de ofertas
 
-**Estado:** pendiente de implementación.  
+**Estado:** completado por indicación del usuario.
 **Dependencias:** 05.  
 **Trazabilidad:** secciones 3.2, 3.3, 3.4, 5, 7, 9, 12 de la [especificación fuente](../FlashBid_MVP1_Especificacion_Tecnica.md).
 

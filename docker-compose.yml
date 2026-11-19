@@ -144,6 +144,35 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  websocket:
+    build:
+      context: .
+      dockerfile: auth_service/Dockerfile
+    command: /workspace/.venv/bin/uvicorn local_dev.ws_app:app --host 0.0.0.0 --port 8001
+    volumes:
+      - ./app/modules:/workspace/modules
+      - ./local_dev:/workspace/local_dev
+    ports:
+      - "8001:8001"
+    environment:
+      AWS_ENDPOINT_URL: http://emulador:4566
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      TABLE_NAME: ${TABLE_NAME:-FlashBidTable}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      APP_ENV: local
+      JWT_SECRET: ${JWT_SECRET:-flashbid-local-development-secret}
+      JWT_ISSUER: ${JWT_ISSUER:-flashbid-local-auth}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-flashbid-web}
+      PYTHONPATH: /workspace
+    depends_on:
+      emulador:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
   frontend:
     image: node:22-alpine
     working_dir: /workspace
@@ -154,6 +183,8 @@ services:
     depends_on:
       auth:
         condition: service_started
+    environment:
+      VITE_WS_BASE_URL: http://localhost:8001
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
 
 volumes:

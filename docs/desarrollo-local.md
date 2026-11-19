@@ -37,3 +37,7 @@ Las Lambdas y API Gateway no se ejecutan aquí: requieren validación separada e
 ## Worker de cierre
 
 El Compose local incluye un servicio `worker`. Después de actualizar el Compose, ejecuta `docker compose -f docker-compose.local.yml up -d --build` y consulta sus logs con `docker compose -f docker-compose.local.yml logs -f worker`. El proceso reconcilia los vencimientos y procesa cierres automáticamente. Redis inaccesible puede retrasar la liquidación hasta su recuperación; no se habilitan pujas vencidas. La sección «Mis subastas ganadas» es simulada y no representa envíos.
+
+## WebSocket del detalle
+
+El backend local ofrece `ws://localhost:8000/ws/auctions/{id}`. Al abrir un detalle se autentica con la primera trama y se suscribe a eventos a través de Redis; si falla el canal, el cliente avisa y consulta el estado por HTTP. La implementación requiere probarse con dos sesiones y desconexiones. Para el Compose de LocalStack se configura un gateway local independiente en el puerto 8001; no sustituye la validación serverless pendiente.

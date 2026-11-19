@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Bids } from "./Bids";
 
-type Auction = { auctionId: string; title: string; description?: string; category?: string; imageUrl: string; initialPrice: number; highestBid?: number; leaderAlias?: string; leaderId?: string; sellerId?: string; sellerAlias?: string; winnerUserId?: string; winnerAlias?: string; winningAmount?: number; expiresAt: number; status: string; serverNow?: number };
+type Auction = { auctionId: string; title: string; description?: string; category?: string; imageUrl: string; initialPrice: number; highestBid?: number; leaderAlias?: string; leaderId?: string; sellerId?: string; sellerAlias?: string; winnerUserId?: string; winnerAlias?: string; winningAmount?: number; expiresAt: number; status: string; version: number; serverNow?: number };
 type Page = { items: Auction[]; nextCursor: string | null; serverNow: number };
 
 export function AuctionCatalog({ api, token, uid, onWalletChange }: { api: string; token: string; uid: string; onWalletChange: () => void }) {
@@ -14,6 +14,10 @@ export function AuctionCatalog({ api, token, uid, onWalletChange }: { api: strin
   const [detailError, setDetailError] = useState("");
   const [offset, setOffset] = useState(0);
   const [now, setNow] = useState(Date.now());
+  const [connection, setConnection] = useState("");
+  const versionRef = useRef(0);
+  const walletRefresh = useRef(onWalletChange);
+  walletRefresh.current = onWalletChange;
 
   const load = useCallback(async (next?: string) => {
     setLoading(true);
@@ -37,21 +41,66 @@ export function AuctionCatalog({ api, token, uid, onWalletChange }: { api: strin
     return () => window.clearInterval(timer);
   }, []);
   useEffect(() => {
-    if (!detail || detail.status === "FINISHED") return;
+    if (!detail?.auctionId) return;
     const id = detail.auctionId;
-    const timer = window.setInterval(async () => {
+    let stopped = false;
+    let attempt = 0;
+    let retry: number | undefined;
+    let socket: WebSocket | undefined;
+    let requestSequence = 0;
+    versionRef.current = detail.version;
+    const sync = async () => {
+      const sequence = ++requestSequence;
       try {
         const response = await fetch(`${api}/auctions/${encodeURIComponent(id)}`, { headers: { Authorization: `Bearer ${token}` } });
-        if (response.ok) {
-          const current: Auction = await response.json();
+        if (stopped || sequence !== requestSequence) return;
+        if (response.status === 404) {
+          setDetail(null); setDetailError("La subasta ya no está disponible."); void load(); return;
+        }
+        if (!response.ok) throw new Error("No se pudo sincronizar la subasta.");
+        const current: Auction = await response.json();
+        if (current.version >= versionRef.current) {
+          versionRef.current = current.version;
           setDetail((previous) => previous?.auctionId === id ? current : previous);
           if (current.serverNow !== undefined) setOffset(current.serverNow - Date.now());
-          if (current.status === "FINISHED") onWalletChange();
         }
-      } catch { /* La siguiente consulta vuelve a intentar. */ }
-    }, 3000);
-    return () => window.clearInterval(timer);
-  }, [api, token, detail?.auctionId, detail?.status]);
+        walletRefresh.current();
+        window.dispatchEvent(new CustomEvent("flashbid:auction-update", { detail: { auctionId: id } }));
+        window.dispatchEvent(new Event("flashbid:refresh-wins"));
+      } catch { if (!stopped) setConnection("No se pudo sincronizar; reintentando."); }
+    };
+    const connect = () => {
+      if (stopped) return;
+      const configured = import.meta.env.VITE_WS_BASE_URL || api;
+      const url = new URL(configured, window.location.href);
+      url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+      url.pathname = `${url.pathname.replace(/\/$/, "")}/ws/auctions/${encodeURIComponent(id)}`;
+      socket = new WebSocket(url.toString());
+      socket.onopen = () => { socket?.send(JSON.stringify({ token })); };
+      socket.onmessage = (message) => {
+        try {
+          const event = JSON.parse(message.data);
+          if (event.auctionId !== id) return;
+          if (event.type === "subscribed") { attempt = 0; setConnection("En vivo"); void sync(); return; }
+          if (typeof event.version !== "number" || event.version <= versionRef.current) return;
+          // La lectura HTTP es autoritativa y también recupera cambios intermedios.
+          void sync();
+        } catch { void sync(); }
+      };
+      socket.onclose = (event) => {
+        if (stopped) return;
+        if (event.code === 1008) { setConnection("Sesión o suscripción no válida. Vuelve a iniciar sesión."); return; }
+        setConnection("Conexión en tiempo real interrumpida. La subasta continúa en el servidor; reconectando…");
+        retry = window.setTimeout(connect, Math.min(1000 * 2 ** attempt++, 30000));
+      };
+      socket.onerror = () => socket?.close();
+    };
+    connect();
+    const poll = window.setInterval(() => void sync(), 15000);
+    const onFocus = () => void sync();
+    window.addEventListener("focus", onFocus);
+    return () => { stopped = true; requestSequence++; window.clearInterval(poll); window.clearTimeout(retry); window.removeEventListener("focus", onFocus); socket?.close(); };
+  }, [api, token, detail?.auctionId, load]);
   const remaining = (expiresAt: number) => Math.max(0, Math.ceil((expiresAt - (now + offset)) / 1000));
 
   async function showDetail(id: string) {
@@ -88,6 +137,7 @@ export function AuctionCatalog({ api, token, uid, onWalletChange }: { api: strin
     {detailLoading && <p role="status">Cargando detalle...</p>}
     {detailError && <p role="alert">{detailError}</p>}
     {detail && <article aria-label="Detalle de subasta">
+      <p role="status">{connection}</p>
       <h3>{detail.title}</h3><img src={detail.imageUrl} alt={detail.title} onError={(event) => { event.currentTarget.src = "/placeholder.svg"; }} />
       <p>{detail.description}</p><p>Categoría: {detail.category}</p><p>Vendedor: {detail.sellerAlias}</p>
       <p>Precio inicial: {detail.initialPrice} créditos</p><p>Mayor puja: {detail.highestBid ?? "Sin pujas"}</p>

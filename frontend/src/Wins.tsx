@@ -16,6 +16,11 @@ export function Wins({ api, token }: { api: string; token: string }) {
     finally { setLoading(false); }
   }, [api, token]);
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const refresh = () => void load();
+    window.addEventListener("flashbid:refresh-wins", refresh);
+    return () => window.removeEventListener("flashbid:refresh-wins", refresh);
+  }, [load]);
   return <section><h2>Mis subastas ganadas</h2><button type="button" disabled={loading} onClick={() => void load()}>Actualizar victorias</button>
     {loading && <p role="status">Cargando...</p>}{error && <p role="alert">{error}</p>}
     {!loading && !error && items.length === 0 && <p>Aún no has ganado subastas.</p>}

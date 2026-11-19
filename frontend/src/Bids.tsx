@@ -30,6 +30,13 @@ export function Bids({ api, token, auctionId, sellerId, leaderId, uid, onAccepte
     finally { setLoading(false); }
   }, [api, auctionId, token]);
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const refresh = (event: Event) => {
+      if ((event as CustomEvent).detail?.auctionId === auctionId) void load();
+    };
+    window.addEventListener("flashbid:auction-update", refresh);
+    return () => window.removeEventListener("flashbid:auction-update", refresh);
+  }, [auctionId, load]);
 
   async function send(event: FormEvent) {
     event.preventDefault();

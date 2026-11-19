@@ -3,6 +3,7 @@ from uuid import uuid4
 
 from botocore.exceptions import ClientError
 from modules.shared.auction_cache import invalidate_auction_snapshot
+from modules.shared.auction_events import publish_auction_event
 from modules.wallets.repository import WalletRepository
 
 
@@ -11,7 +12,10 @@ class SettlementService:
         self.table = table
 
     def close(self, auction_id, now_ms=None):
-        auction = self.table.get_item(Key={"PK": f"AUCTION#{auction_id}", "SK": "META"}, ConsistentRead=True).get("Item")
+        
+        auction = self.table.get_item(Key={"PK": f"AUCTION#{auction_id}",
+                                            "SK": "META"}, ConsistentRead=True).get("Item")
+        
         if not auction or auction.get("status") != "ACTIVE_BIDDING":
             return {"status": "inactive"}
         now = datetime.now(timezone.utc)
@@ -60,4 +64,7 @@ class SettlementService:
                 return {"status": "retry"}
             raise
         invalidate_auction_snapshot(auction_id)
+        publish_auction_event(auction_id, {"type": "auction.finished", "auctionId": auction_id,
+                              "winnerAlias": auction.get("leaderAlias", ""), "winningAmount": amount,
+                              "version": int(auction["version"]) + 1})
         return {"status": "finished", "settlementId": settlement}

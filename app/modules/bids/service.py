@@ -9,6 +9,7 @@ from botocore.exceptions import ClientError
 
 from modules.auctions.repository import AuctionRepository
 from modules.shared.auction_cache import invalidate_auction_snapshot
+from modules.shared.auction_events import publish_auction_event
 from modules.users.repository import ProfileRepository
 from modules.wallets.repository import WalletRepository
 import os
@@ -104,6 +105,11 @@ class BidService:
                 {"Put": {"TableName": table, "Item": {"PK": f"AUCTION#{auction_id}", "SK": f"BID#{timestamp}#{bid_id}",
                     **bid, "requestId": request_id, "GSI4PK": f"BIDDER#{uid}", "GSI4SK": f"{timestamp}#{bid_id}"},
                     "ConditionExpression": "attribute_not_exists(PK)"}},
+                {"Update": {"TableName": table, "Key": {"PK": f"USER#{uid}", "SK": f"PARTICIPATION#{auction_id}"},
+                    "UpdateExpression": "SET #aid=:aid, #bid=:bid, #amount=:amount, #at=:at, #version=:version",
+                    "ExpressionAttributeNames": {"#aid": "auctionId", "#bid": "bidId", "#amount": "amount", "#at": "acceptedAt", "#version": "auctionVersion"},
+                    "ExpressionAttributeValues": {":aid": auction_id, ":bid": bid_id, ":amount": amount,
+                                                  ":at": timestamp, ":version": bid["version"]}}},
                 {"Put": {"TableName": table, "Item": movement(uid, "RESERVE", amount, -amount, amount),
                     "ConditionExpression": "attribute_not_exists(PK)"}},
                 {"Put": {"TableName": table, "Item": {"PK": f"USER#{uid}", "SK": f"REQUEST#{request_id}",
@@ -137,6 +143,9 @@ class BidService:
                 redis.Redis(host=os.environ.get("REDIS_HOST", "redis"), port=int(os.environ.get("REDIS_PORT", "6379")), socket_connect_timeout=1, socket_timeout=1).zadd("auctions:deadlines", {auction_id: expires})
             except redis.RedisError:
                 pass
+            publish_auction_event(auction_id, {"type": "auction.bid_accepted", "auctionId": auction_id,
+                                  "bidId": bid_id, "amount": amount, "leaderAlias": profile["displayName"],
+                                  "expiresAt": expires, "version": bid["version"]})
             return bid
 
     def history(self, auction_id, uid, limit=20, cursor=None):
