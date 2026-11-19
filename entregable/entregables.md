@@ -44,6 +44,38 @@ La siguiente tabla se copia de [01_patrones_acceso.md](../docs/data/01_patrones_
 | PA-23 | Reconexión | ¿Qué cambió mientras estuve desconectado? | Subasta + billetera + pujas | AUCTION#aid y USER#uid | META, WALLET y BID# | Tabla | — | — | Por reconexión | Reutiliza detalle, billetera e historial | Snapshot/version autoritativo, serverNow y estado final; HTTP recupera eventos perdidos | CU-08-03 |
 
 
+### Lambda o proceso asociado a cada patrón
+
+La tabla refleja los adaptadores definidos en el código y CDK. La identidad, el worker y el servidor WebSocket se ejecutan como servicios Docker; no son Lambdas en la configuración actual. Los patrones también pueden ejecutarse desde el adaptador FastAPI del entorno con DynamoDB Local.
+
+| Patrón | Lambda o proceso responsable | Ruta o responsabilidad |
+|---|---|---|
+| PA-01 | `UsersHandler` | `GET /me`: lee el perfil autenticado. |
+| PA-02 | Servicio `auth` (FastAPI) | `POST /auth/register`: crea la identidad y el perfil; no usa Lambda. |
+| PA-03 | `UsersHandler` | `GET /me`: consulta la billetera junto con el perfil. |
+| PA-04 | `UsersHandler` | `GET /me`: inicializa la billetera de manera idempotente si aún no existe. |
+| PA-05 | `WalletHandler` | `GET /me/wallet/movements`: consulta los movimientos. |
+| PA-06 | `AuctionsHandler` | `POST /auctions`: publica la subasta. |
+| PA-07 | `AuctionsHandler` | `DELETE /auctions/{id}`: cancela una subasta propia si cumple las condiciones. |
+| PA-08 | `AuctionsHandler` | `GET /auctions`: consulta el catálogo activo. |
+| PA-09 | `AuctionsHandler` | `GET /auctions/{id}`: lee el detalle mediante Cache-Aside. |
+| PA-10 | `AuctionsHandler` | `GET /auctions` y `GET /auctions/{id}`: valida la visibilidad y el vencimiento. |
+| PA-11 | `BidsHandler` | `POST /auctions/{id}/bids`: comprueba el estado y precio de la subasta. |
+| PA-12 | `BidsHandler` | La operación de puja valida y actualiza las billeteras implicadas. |
+| PA-13 | `BidsHandler` | Registra la primera puja y la reserva en una transacción. |
+| PA-14 | `BidsHandler` | Registra la puja que supera al líder y libera la reserva anterior. |
+| PA-15 | `BidsHandler` | Comprueba y registra la idempotencia de la solicitud. |
+| PA-16 | `BidsHandler` | `GET /auctions/{id}/bids`: consulta el historial de pujas. |
+| PA-17 | Servicio `worker` | Reconcilia las subastas con pujas y sus vencimientos; no usa Lambda. |
+| PA-18 | Servicio `worker` | Comprueba la subasta antes de cerrar el vencimiento. |
+| PA-19 | Servicio `worker` | Ejecuta la liquidación, los movimientos y el registro de victoria. |
+| PA-20 | `ActivityHandler` | `GET /me/auctions`: consulta las publicaciones propias. |
+| PA-21 | `ActivityHandler` | `GET /me/bids`: consulta la participación más reciente por subasta. |
+| PA-22 | `WalletHandler` | `GET /me/wins`: consulta las victorias del usuario. |
+| PA-23 | Servicio `websocket`; `AuctionsHandler`, `BidsHandler` y `UsersHandler` | WebSocket comunica eventos; al reconectar se recuperan detalle, historial y billetera mediante HTTP. |
+
+Los handlers están en [app/lambdas](../app/lambdas) y su asociación con API Gateway en [app/infra/stack.py](../app/infra/stack.py). La existencia de estos adaptadores no implica que un despliegue concreto haya sido validado.
+
 ### Endpoint local asociado a cada patrón
 
 La dirección base es `http://localhost:8000`. `{auction_id}` representa el ID de la subasta. Los patrones de trabajo interno no tienen una ruta HTTP pública propia.
@@ -100,7 +132,7 @@ La tabla configura `ttl` para la limpieza de registros que lo contengan. Una pub
 | GSI1 | `AUCTIONS#ACTIVE` | `createdAt#aid` | `KEYS_ONLY` | Localizar subastas para el catálogo. |
 | GSI2 | `SELLER#uid` | `createdAt#aid` | `KEYS_ONLY` | Localizar publicaciones de un vendedor. |
 | GSI3 | `AUCTIONS#ACTIVE_BIDDING` | `expiresAtMs#aid` | `KEYS_ONLY` | Reconstruir vencimientos de subastas con pujas para el worker. |
-| GSI4 | `BIDDER#uid` | `acceptedAt#bidId` | `INCLUDE`: `amount`, `acceptedAt`, `bidId` | Localizar ofertas del participante y recuperar 
+| GSI4 | `BIDDER#uid` | `acceptedAt#bidId` | `INCLUDE`: `amount`, `acceptedAt`, `bidId` | Localizar ofertas del participante y recuperar participaciones anteriores. |
 
 ### Transacciones mencionadas en los patrones
 
