@@ -13,6 +13,7 @@ export function MyActivity({ api, token }: { api: string; token: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<Auction | null>(null);
+  const [selectedSource, setSelectedSource] = useState<"auctions" | "bids">("auctions");
   const [offset, setOffset] = useState(0);
   const [now, setNow] = useState(Date.now());
 
@@ -47,6 +48,7 @@ export function MyActivity({ api, token }: { api: string; token: string }) {
       const response = await fetch(`${api}/auctions/${encodeURIComponent(id)}`, { headers: { Authorization: `Bearer ${token}` } });
       if (!response.ok) throw new Error("La subasta ya no está disponible.");
       const item: Auction = await response.json();
+      setSelectedSource("bids");
       setSelected(item);
     } catch (err) { setError(err instanceof Error ? err.message : "Error de conexión."); }
     finally { setLoading(false); }
@@ -57,21 +59,25 @@ export function MyActivity({ api, token }: { api: string; token: string }) {
       const response = await fetch(`${api}/auctions/${encodeURIComponent(id)}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error?.message ?? data.detail ?? "No se pudo cancelar la subasta.");
-      setSelected(data); await load();
+      setSelectedSource("auctions"); setSelected(data); await load();
     } catch (err) { setError(err instanceof Error ? err.message : "Error de conexión."); }
     finally { setLoading(false); }
   }
-  return <section><h2>Mi actividad</h2><button type="button" disabled={loading} onClick={() => void load()}>Actualizar actividad</button>
+  return <section className="activity-section"><div className="secondary-heading"><div><p className="eyebrow">Tu espacio personal</p><h1>Mi actividad<span className="gold-dot">.</span></h1><p>Consulta tus subastas y el estado de tus pujas.</p></div><button className="outline-button" type="button" disabled={loading} onClick={() => void load()}>Actualizar actividad</button></div>
     {loading && <p role="status">Cargando actividad...</p>}{error && <p role="alert">{error}</p>}
-    <h3 id="mis-subastas">Mis subastas</h3>{!loading && !error && auctions.length === 0 && <p>No hay subastas en esta página.</p>}
+    <div className="subsection-heading"><div><p className="eyebrow">Publicaciones</p><h2 id="mis-subastas">Mis subastas</h2></div><span className="mono">{auctions.length} EN ESTA PÁGINA</span></div>{!loading && !error && auctions.length === 0 && <p className="secondary-empty">Aún no has publicado ninguna subasta.</p>}
     <div className="auction-grid">{auctions.map((item) => {
       const state = item.status === "ACTIVE_NO_BIDS" && item.expiresAt <= now + offset ? "EXPIRED_NO_BIDS" : item.status === "ACTIVE_BIDDING" && item.expiresAt <= now + offset ? "FINALIZING" : item.status;
-      return <article key={item.auctionId}><img src={item.imageUrl} alt={item.title} onError={(e) => { e.currentTarget.src = "/placeholder.svg"; }} /><h4>{item.title}</h4><p>{labels[state] ?? state}</p><button type="button" onClick={() => setSelected({ ...item, status: state })}>Ver información</button>{state === "ACTIVE_NO_BIDS" && <button type="button" disabled={loading} onClick={() => void cancel(item.auctionId)}>Cancelar subasta</button>}</article>;
+      return <article key={item.auctionId}><img src={item.imageUrl} alt={item.title} onError={(e) => { e.currentTarget.src = "/placeholder.svg"; }} /><div className="activity-card-body"><p className="eyebrow">{labels[state] ?? state}</p><h3>{item.title}</h3><p>Precio inicial <strong>{item.initialPrice} créditos</strong></p><button className="text-button" type="button" onClick={() => { setSelectedSource("auctions"); setSelected({ ...item, status: state }); }}>Ver información ↗</button>{state === "ACTIVE_NO_BIDS" && <button className="text-button" type="button" disabled={loading} onClick={() => void cancel(item.auctionId)}>Cancelar subasta</button>}</div></article>;
     })}</div>
     {auctionCursor && <button type="button" disabled={loading} onClick={() => void more("auctions", auctionCursor)}>Más subastas</button>}
-    {selected && <article aria-label="Información de mi subasta"><h4>{selected.title}</h4><p>{selected.description}</p><p>Categoría: {selected.category}</p><p>Precio inicial: {selected.initialPrice} créditos</p><p>Estado: {labels[selected.status] ?? selected.status}</p>{selected.winnerAlias && <p>Ganador: {selected.winnerAlias} — {selected.winningAmount} créditos</p>}<button type="button" onClick={() => setSelected(null)}>Cerrar información</button></article>}
-    <h3 id="mis-pujas">Mis pujas</h3>{!loading && !error && bids.length === 0 && <p>No hay pujas en esta página.</p>}
-    <ul>{bids.map((bid) => <li key={bid.bidId}>{bid.auction?.title ?? "Subasta no disponible"}: {bid.amount} créditos — {new Date(bid.acceptedAt).toLocaleString()} — {bid.auction ? bid.auction.isWinner ? "Ganaste" : bid.auction.isLeader ? "Vas liderando" : labels[bid.auction.status] ?? bid.auction.status : "No disponible"} {bid.auction && <button type="button" disabled={loading} onClick={() => void openBidAuction(bid.auctionId)}>Ver subasta</button>}</li>)}</ul>
+    {selected && selectedSource === "auctions" && <AuctionDetail selected={selected} onClose={() => setSelected(null)} />}
+    <div className="subsection-heading"><div><p className="eyebrow">Tu participación</p><h2 id="mis-pujas">Mis pujas</h2></div></div>{!loading && !error && bids.length === 0 && <p className="secondary-empty">Aún no has realizado ninguna puja.</p>}
+    <div className="bid-list">{bids.map((bid) => <div key={bid.bidId}><article className="bid-row"><div><p className="eyebrow">{bid.auction ? bid.auction.isWinner ? "Ganaste" : bid.auction.isLeader ? "Vas liderando" : labels[bid.auction.status] ?? bid.auction.status : "No disponible"}</p><h3>{bid.auction?.title ?? "Subasta no disponible"}</h3><span>{new Date(bid.acceptedAt).toLocaleString("es-CO")}</span></div><div className="bid-row-value"><strong>{bid.amount} créditos</strong>{bid.auction && <button className="text-button" type="button" disabled={loading} onClick={() => void openBidAuction(bid.auctionId)}>Ver información ↗</button>}</div></article>{selected && selectedSource === "bids" && selected.auctionId === bid.auctionId && <AuctionDetail selected={selected} onClose={() => setSelected(null)} />}</div>)}</div>
     {bidCursor && <button type="button" disabled={loading} onClick={() => void more("bids", bidCursor)}>Más pujas</button>}
   </section>;
+}
+
+function AuctionDetail({ selected, onClose }: { selected: Auction; onClose: () => void }) {
+  return <article className="activity-detail" aria-label="Información de la subasta"><p className="eyebrow">Detalle de la subasta</p><h3>{selected.title}</h3><p>{selected.description}</p><p>Categoría: {selected.category}</p><p>Precio inicial: {selected.initialPrice} créditos</p><p>Estado: {labels[selected.status] ?? selected.status}</p>{selected.winnerAlias && <p>Ganador: {selected.winnerAlias} — {selected.winningAmount} créditos</p>}<button className="text-button" type="button" onClick={onClose}>Cerrar información</button></article>;
 }

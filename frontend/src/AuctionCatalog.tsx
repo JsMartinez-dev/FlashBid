@@ -6,6 +6,20 @@ type Page = { items: Auction[]; nextCursor: string | null; serverNow: number };
 const money = (n: number) => new Intl.NumberFormat("es-CO").format(n);
 const clock = (seconds: number) => `${String(Math.floor(seconds / 3600)).padStart(2, "0")}:${String(Math.floor((seconds % 3600) / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
+function AuctionResult({ auction, isWinner, onClose }: { auction: Auction; isWinner: boolean; onClose: () => void }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => { dialog.current?.showModal(); }, []);
+  return <dialog ref={dialog} className={`result-dialog ${isWinner ? "result-dialog-winner" : "result-dialog-seller"}`} onCancel={(event) => { event.preventDefault(); onClose(); }} aria-labelledby="result-title" aria-describedby="result-description">
+    {isWinner && <div className="result-confetti" aria-hidden="true">{Array.from({ length: 12 }, (_, i) => <i key={i} />)}</div>}
+    <button className="result-close" onClick={onClose} aria-label="Cerrar aviso">×</button>
+    <div className="result-icon" aria-hidden="true"><span className="material-symbols-outlined">{isWinner ? "emoji_events" : "gavel"}</span></div>
+    <p className="eyebrow">{isWinner ? "Una victoria para celebrar" : "Tu subasta ha finalizado"}</p>
+    <h2 id="result-title">{isWinner ? "¡Felicidades, ganaste!" : "¡Subasta finalizada!"}</h2>
+    <p id="result-description">{isWinner ? <>Tu puja ganó la subasta de <strong>{auction.title}</strong>. Encontrarás esta pieza en tus subastas ganadas.</> : <>La subasta de <strong>{auction.title}</strong> terminó. El ganador fue <strong>{auction.winnerAlias || "el comprador"}</strong> con una puja de <strong>{money(auction.winningAmount ?? 0)} créditos</strong>.</>}</p>
+    <button className="result-confirm" onClick={onClose}>Continuar</button>
+  </dialog>;
+}
+
 export function AuctionCatalog({ api, token, uid, onWalletChange }: { api: string; token: string; uid: string; onWalletChange: () => void }) {
   const [items, setItems] = useState<Auction[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -18,6 +32,7 @@ export function AuctionCatalog({ api, token, uid, onWalletChange }: { api: strin
   const [now, setNow] = useState(Date.now());
   const [connection, setConnection] = useState("");
   const [position, setPosition] = useState(0);
+  const [dismissedResult, setDismissedResult] = useState<string | null>(null);
   const touchStart = useRef<number | null>(null);
   const versionRef = useRef(0);
   const walletRefresh = useRef(onWalletChange);
@@ -118,7 +133,7 @@ export function AuctionCatalog({ api, token, uid, onWalletChange }: { api: strin
     <div className="lot-info"><h3>{item.title}</h3><div className="lot-bottom"><div><span className="eyebrow">{item.highestBid ? "Puja actual" : "Precio inicial"}</span><strong className="mono">{money(item.highestBid ?? item.initialPrice)} <small>PTS</small></strong></div><button className="dark-button" onClick={() => void showDetail(item.auctionId)}>Ver subasta <span className="material-symbols-outlined" aria-hidden="true">arrow_outward</span></button></div></div>
   </article>;
 
-  if (detail) return <div className="detail-page page-shell"><button className="back-link" onClick={() => { setDetail(null); setDetailError(""); }}><span className="material-symbols-outlined" aria-hidden="true">arrow_back</span> Volver a explorar</button>
+  if (detail) return <div className="detail-page page-shell">{detail.status === "FINISHED" && (detail.winnerUserId === uid || detail.sellerId === uid) && dismissedResult !== detail.auctionId && <AuctionResult auction={detail} isWinner={detail.winnerUserId === uid} onClose={() => setDismissedResult(detail.auctionId)} />}<button className="back-link" onClick={() => { setDetail(null); setDetailError(""); }}><span className="material-symbols-outlined" aria-hidden="true">arrow_back</span> Volver a explorar</button>
     <div className="detail-heading"><div><p className="eyebrow">Colección / {detail.category || "Subasta"}</p><h1>{detail.title}</h1></div><span className="connection" role="status"><i />{connection || "Conectando…"}</span></div>
     {detailError && <p role="alert" className="error-message">{detailError}</p>}
     <div className="detail-layout"><div className="detail-photo">{picture(detail)}</div><aside className="detail-panel"><div className="detail-panel-top"><span className="eyebrow">Subasta en tiempo real</span><span className="lot-number mono">LOTE / {detail.auctionId.slice(0, 8).toUpperCase()}</span></div>

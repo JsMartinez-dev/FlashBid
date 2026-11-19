@@ -21,9 +21,9 @@ export function Wins({ api, token }: { api: string; token: string }) {
     window.addEventListener("flashbid:refresh-wins", refresh);
     return () => window.removeEventListener("flashbid:refresh-wins", refresh);
   }, [load]);
-  return <section><h2>Mis subastas ganadas</h2><button type="button" disabled={loading} onClick={() => void load()}>Actualizar victorias</button>
+  return <section className="wins-section"><div className="subsection-heading"><div><p className="eyebrow">Tu colección</p><h2>Mis subastas ganadas</h2></div><button className="outline-button" type="button" disabled={loading} onClick={() => void load()}>Actualizar victorias</button></div>
     {loading && <p role="status">Cargando...</p>}{error && <p role="alert">{error}</p>}
-    {!loading && !error && items.length === 0 && <p>Aún no has ganado subastas.</p>}
-    <div className="auction-grid">{items.map((item) => <article key={item.auctionId}><img src={item.imageUrl} alt={item.title} onError={(e) => { e.currentTarget.src = "/placeholder.svg"; }} /><h3>{item.title}</h3><p>Monto ganador: {item.winningAmount} créditos</p><p>Subasta ganada</p></article>)}</div>
+    {!loading && !error && items.length === 0 && <p className="secondary-empty">Aún no has ganado subastas. Tus victorias aparecerán aquí.</p>}
+    <div className="auction-grid">{items.map((item) => <article key={item.auctionId}><img src={item.imageUrl} alt={item.title} onError={(e) => { e.currentTarget.src = "/placeholder.svg"; }} /><div className="activity-card-body"><p className="eyebrow gold-text">Subasta ganada</p><h3>{item.title}</h3><p>Monto ganador <strong>{item.winningAmount} créditos</strong></p></div></article>)}</div>
     {cursor && <button type="button" onClick={() => void load(cursor)}>Cargar más</button>}</section>;
 }
