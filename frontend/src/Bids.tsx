@@ -30,6 +30,13 @@ export function Bids({ api, token, auctionId, sellerId, leaderId, uid, onAccepte
     finally { setLoading(false); }
   }, [api, auctionId, token]);
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const refresh = (event: Event) => {
+      if ((event as CustomEvent).detail?.auctionId === auctionId) void load();
+    };
+    window.addEventListener("flashbid:auction-update", refresh);
+    return () => window.removeEventListener("flashbid:auction-update", refresh);
+  }, [auctionId, load]);
 
   async function send(event: FormEvent) {
     event.preventDefault();
@@ -55,10 +62,10 @@ export function Bids({ api, token, auctionId, sellerId, leaderId, uid, onAccepte
     finally { setBusy(false); }
   }
 
-  return <section aria-label="Pujas"><h4>Historial de pujas</h4>
+  return <section className="bids-history" aria-label="Pujas"><h4>Historial de pujas</h4>
     {loading && <p role="status">Cargando historial...</p>}
     {!loading && bids.length === 0 && <p>Aún no hay pujas.</p>}
-    <ul>{bids.map((bid) => <li key={bid.bidId}>{bid.publicAlias}: {bid.amount} créditos — {bid.acceptedAt}</li>)}</ul>
+    <ul className="bids-history-list">{bids.map((bid, index) => <li key={bid.bidId} className="bids-history-row"><span className={`bid-avatar ${index === 0 ? "bid-avatar-leader" : ""}`} aria-hidden="true">{bid.publicAlias.trim().charAt(0).toUpperCase() || "?"}</span><div className="bid-history-person"><strong>{bid.publicAlias}</strong>{index === 0 && <span className="bid-leader-label">Puja líder</span>}<time dateTime={bid.acceptedAt}>{new Date(bid.acceptedAt).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })}</time></div><strong className="bid-history-amount">{new Intl.NumberFormat("es-CO").format(bid.amount)} <small>créditos</small></strong></li>)}</ul>
     {cursor && <button type="button" disabled={loading} onClick={() => void load(cursor)}>Cargar más pujas</button>}
     {sellerId === uid ? <p>No puedes pujar en tu propia subasta.</p> : leaderId === uid && !pending ? <p>Ya eres el líder de la subasta.</p> :
       <form onSubmit={send}><label>Tu puja en créditos<input type="number" min="1" step="1" value={pending ? pending.amount : amount} onChange={(event) => setAmount(event.target.value)} disabled={!!pending || busy} required /></label>

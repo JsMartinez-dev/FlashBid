@@ -292,6 +292,16 @@ class ProyectoFinalStack(Stack):
             resources=[tabla.table_arn],
         ))
 
+        lambda_activity = _lambda.Function(
+            self, "ActivityHandler", runtime=RUNTIME, handler="handler.main",
+            code=_codigo_lambda("lambdas/activity"), layers=layers,
+            environment=env_comun, timeout=cdk.Duration.seconds(10),
+        )
+        lambda_activity.add_to_role_policy(iam.PolicyStatement(
+            actions=["dynamodb:GetItem", "dynamodb:Query", "dynamodb:UpdateItem", "dynamodb:PutItem"],
+            resources=[tabla.table_arn, f"{tabla.table_arn}/index/GSI2", f"{tabla.table_arn}/index/GSI4"],
+        ))
+
         # ── 5. API GATEWAY ────────────────────────────────────────────
         # LambdaRestApi crea automáticamente una integración proxy
         # entre API Gateway y la Lambda raíz.
@@ -318,6 +328,8 @@ class ProyectoFinalStack(Stack):
 
         recurso_me: apigw.Resource = api.root.add_resource("me")
         recurso_me.add_method("GET", apigw.LambdaIntegration(lambda_users))
+        recurso_me.add_resource("auctions").add_method("GET", apigw.LambdaIntegration(lambda_activity))
+        recurso_me.add_resource("bids").add_method("GET", apigw.LambdaIntegration(lambda_activity))
         recurso_me.add_resource("wins").add_method("GET", apigw.LambdaIntegration(lambda_wallet))
         recurso_wallet: apigw.Resource = recurso_me.add_resource("wallet")
         recurso_movements: apigw.Resource = recurso_wallet.add_resource("movements")

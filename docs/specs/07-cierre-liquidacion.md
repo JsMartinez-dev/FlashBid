@@ -1,6 +1,6 @@
 # Spec 07 — Cierre automático, ganador y liquidación
 
-**Estado:** implementado; validación integrada pendiente.  
+**Estado:** completado por indicación del usuario.
 **Dependencias:** 06.  
 **Trazabilidad:** secciones 3.3, 3.4, 5.1, 6.2, 12 de la [especificación fuente](../FlashBid_MVP1_Especificacion_Tecnica.md).
 

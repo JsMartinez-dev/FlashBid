@@ -5,6 +5,7 @@ from typing import Any
 from modules.auctions.repository import AuctionRepository
 from modules.users.repository import ProfileRepository
 from modules.shared.auction_cache import cache_read, cache_write, invalidate_auction_snapshot
+from modules.shared.auction_events import publish_auction_event
 
 
 class AuctionService:
@@ -21,6 +22,7 @@ class AuctionService:
     def list_active(self, uid: str, limit: int = 20, cursor: str | None = None) -> dict[str, Any]:
         return self._auctions.list_active(min(max(limit, 1), 50), cursor, uid)
 
+    #Cache-aside
     def detail(self, auction_id: str) -> dict[str, Any] | None:
         cached, generation = cache_read(auction_id)
         now = int(datetime.now(timezone.utc).timestamp() * 1000)
@@ -40,4 +42,5 @@ class AuctionService:
     def cancel(self, auction_id: str, seller_id: str) -> dict[str, Any]:
         result = self._auctions.cancel(auction_id, seller_id)
         invalidate_auction_snapshot(auction_id)
+        publish_auction_event(auction_id, {"type": "auction.cancelled", "auctionId": auction_id, "version": result["version"]})
         return result
